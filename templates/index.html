@@ -25,6 +25,7 @@
             padding: 10px 20px;
             font-size: 16px;
             cursor: pointer;
+            z-index: 10; /* Для того чтобы кнопка отображалась поверх шариков */
         }
     </style>
 </head>
@@ -44,8 +45,8 @@
                 element: ball,
                 x: window.innerWidth / 2,
                 y: window.innerHeight / 2,
-                velocityX: (Math.random() - 0.5) * 4,
-                velocityY: (Math.random() - 0.5) * 4,
+                velocityX: 0,
+                velocityY: 0,
                 gravity: 0.1,
                 friction: 0.99
             };
@@ -56,9 +57,10 @@
             createBall();
         }
 
+        // Функция обновления физики и применения силы наклона устройства
         function updatePhysics() {
             balls.forEach(ball => {
-                // Применяем гравитацию и замедление (friction)
+                // Применяем гравитацию и замедление
                 ball.velocityY += ball.gravity;
                 ball.velocityX *= ball.friction;
                 ball.velocityY *= ball.friction;
@@ -88,6 +90,18 @@
         // Начальное создание шарика
         createBall();
         updatePhysics();
+
+        // Обработка наклона устройства
+        window.addEventListener('deviceorientation', (event) => {
+            const tiltX = event.gamma; // Наклон влево/вправо
+            const tiltY = event.beta;  // Наклон вперёд/назад
+
+            balls.forEach(ball => {
+                // Учитываем наклон для добавления движения по осям x и y
+                ball.velocityX += tiltX * 0.05;
+                ball.velocityY += tiltY * 0.05;
+            });
+        });
     </script>
 </body>
 </html>
