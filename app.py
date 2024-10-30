@@ -10,8 +10,11 @@ from modules.commands import *
 bot = telebot.TeleBot(config.API)  # создание бота
 
 # КЛАВИАТУРЫ
+btn_happy = types.InlineKeyboardButton("😊", callback_data='mood:Счастье')
+btn_sad = types.InlineKeyboardButton("😢", callback_data='mood:Грусть')
 btn_profile = InlineKeyboardButton(text="Профиль", callback_data="profile")
 keyboard_main = InlineKeyboardMarkup(row_width=2)
+keyboard_main.add(btn_happy, btn_sad)
 keyboard_main.add(btn_profile)
 
 
