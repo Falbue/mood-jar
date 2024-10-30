@@ -55,6 +55,24 @@ def add_mood(user_id, mood, reason):
     # Обновление записи в базе данных
     SQL_request("UPDATE users SET mood = ? WHERE id = ?", (json.dumps(mood_data, ensure_ascii=False), user_id))
 
+def get_only_mood(user_id, date):
+    # Извлекаем данные настроений для пользователя из базы данных
+    result = SQL_request("SELECT mood FROM users WHERE id = ?", (user_id,))
+    
+    if result and result[0]:  # Если запись существует и mood не пустой
+        mood_data = json.loads(result[0])
+        
+        # Проверяем, есть ли записи за указанную дату
+        if date in mood_data:
+            # Собираем только значения настроений в один список
+            moods = [entry['mood'] for time, entry in mood_data[date].items()]
+            # Объединяем список настроений в одну строку через запятую или любой другой разделитель
+            mood_message = "    ".join(moods)
+            return mood_message
+        else:
+            return f"Нет записей настроений за {date}"
+    else:
+        return "Данные о настроении отсутствуют для данного пользователя"
 # ПРОВЕРКА СОЗДАНИЯ БД
 if not os.path.exists(DB_PATH):
     connect = sqlite3.connect(DB_PATH)
