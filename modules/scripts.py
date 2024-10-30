@@ -69,6 +69,7 @@ else:
             frend INTEGER,
             time_registration TIME,
             username TEXT,
+            topics TEXT,
             mood JSON
         )
     """)
