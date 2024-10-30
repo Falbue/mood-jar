@@ -47,7 +47,9 @@ def start(message):
 # ОБРАБОТКА ВЫЗОВОВ
 @bot.callback_query_handler(func=lambda call: True)
 def callback_query(call):  # работа с вызовами inline кнопок
-    user = SQL_request("SELECT * FROM users WHERE id = ?", (int(call.message.chat.id),))
+    user_id = call.message.chat.id
+    message_id = call.message.message_id
+    user = SQL_request("SELECT * FROM users WHERE id = ?", (int(user_id),))
     print(call.data)
 
     if call.data == 'profile':
