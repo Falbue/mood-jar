@@ -13,15 +13,13 @@ VERSION = "test"
 
 
 
-def now_time():  # функция получения текущего времени по мск
+def now_time():  # Получение текущего времени по МСК
     now = datetime.now()
     tz = pytz.timezone('Europe/Moscow')
     now_moscow = now.astimezone(tz)
-    current_time = now_moscow.strftime("%H:%M")
-    current_date = now_moscow.strftime("%m.%d.%Y")
-    date = f"{current_date} {current_time}"
-    return date
-
+    current_time = now_moscow.strftime("%H:%M:%S")
+    current_date = now_moscow.strftime("%Y.%m.%d")
+    return current_date, current_time
 
 def SQL_request(request, params=()):  # sql запросы
     connect = sqlite3.connect(DB_PATH)
