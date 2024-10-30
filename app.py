@@ -6,7 +6,7 @@ import config
 from modules.scripts import *
 from modules.commands import *
 
-VERSION = "1.0.1"
+VERSION = "1.0.1.1"
 
 
 bot = telebot.TeleBot(config.API)  # создание бота
@@ -160,7 +160,7 @@ def callback_query(call):  # работа с вызовами inline кнопо�
         add_mood(user_id, mood, "")
         keyboard_main = create_keyboard_main(user_id)
         text = "Добавить настроение"
-        if message.chat.id == config.ADMIN:
+        if user_id == config.ADMIN:
             text = f"{VERSION}\n\n{text}"
         bot.edit_message_text(chat_id=user_id, message_id=message_id, text=text, reply_markup=keyboard_main)
 
@@ -178,7 +178,7 @@ def callback_query(call):  # работа с вызовами inline кнопо�
         if (call.data).split(":")[1] == 'main':
             keyboard_main = create_keyboard_main(user_id)
             text = "Добавить настроение"
-            if message.chat.id == config.ADMIN:
+            if user_id == config.ADMIN:
                 text = f"{VERSION}\n\n{text}"
             bot.edit_message_text(chat_id=user_id, message_id=message_id, text=text, reply_markup=keyboard_main)
         
