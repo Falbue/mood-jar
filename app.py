@@ -22,10 +22,14 @@ btn_skip = InlineKeyboardButton(text="Пропустить >", callback_data='sk
 keyboard_mood_settings = InlineKeyboardMarkup(row_width = 2)
 keyboard_mood_settings.add(btn_return_main, btn_skip)
 
+keyboard_profile = InlineKeyboardMarkup(row_width=2)
+keyboard_profile.add(btn_return_main)
+
 def send_message(message, mood, message_id):
     add_mood(message.chat.id, mood, message.text)
     bot.delete_message(message.chat.id, message.message_id)
     bot.edit_message_text(chat_id=message.chat.id, message_id=message_id, text="Добавить настроение", reply_markup=keyboard_main)
+
 
 
 commands = [  # КОМАНДЫ
