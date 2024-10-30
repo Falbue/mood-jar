@@ -73,6 +73,22 @@ def get_only_mood(user_id, date):
             return f"Нет записей настроений за {date}"
     else:
         return "Данные о настроении отсутствуют для данного пользователя"
+
+def format_moods(text):
+    # Заменяем текст на смайлики
+    emojis = text.replace("Счастье", "😊").replace("Грусть", "😢")
+    
+    # Разбиваем смайлики на группы по 4
+    emoji_list = emojis.split()
+    rows = []
+    for i in range(0, len(emoji_list), 4):
+        row = ' '.join(emoji_list[i:i + 4])  # Собираем по 4 смайлика в строку
+        rows.append(row)
+    
+    # Соединяем строки
+    formatted_text = '\n'.join(rows)
+    return formatted_text
+
 # ПРОВЕРКА СОЗДАНИЯ БД
 if not os.path.exists(DB_PATH):
     connect = sqlite3.connect(DB_PATH)
