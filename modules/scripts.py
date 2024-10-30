@@ -33,20 +33,14 @@ def SQL_request(request, params=()):  # Выполнение SQL-запросо�
 
 def add_mood(user_id, mood, reason):
     current_date, current_time = now_time()
-    
-    # Получение текущего состояния поля mood для пользователя
     result = SQL_request("SELECT mood FROM users WHERE id = ?", (user_id,))
-    
-    if result and result[0]:  # Если запись существует и mood не пустой
+    if result and result[0]:
         mood_data = json.loads(result[0])
     else:
-        mood_data = {}  # Если mood пустой, создаем пустой словарь
-    
-    # Проверка количества записей настроения на текущий день
+        mood_data = {}
     if current_date not in mood_data:
-        mood_data[current_date] = {}  # Если текущей даты нет, добавляем пустой словарь для нее
-    
-    if len(mood_data[current_date]) < 20:  # Проверка ограничения на 20 записей
+        mood_data[current_date] = {}
+    if len(mood_data[current_date]) < 20:
         mood_data[current_date][current_time] = {'mood': mood, 'reason': reason}
     else:
         print("Достигнуто максимальное количество записей на текущий день")
@@ -55,18 +49,12 @@ def add_mood(user_id, mood, reason):
     # Обновление записи в базе данных
     SQL_request("UPDATE users SET mood = ? WHERE id = ?", (json.dumps(mood_data, ensure_ascii=False), user_id))
 
-def get_only_mood(user_id, date):
-    # Извлекаем данные настроений для пользователя из базы данных
+def get_only_mood(user_id, date):  # Извлекаем данные настроений для пользователя из базы данных
     result = SQL_request("SELECT mood FROM users WHERE id = ?", (user_id,))
-    
-    if result and result[0]:  # Если запись существует и mood не пустой
+    if result and result[0]:
         mood_data = json.loads(result[0])
-        
-        # Проверяем, есть ли записи за указанную дату
         if date in mood_data:
-            # Собираем только значения настроений в один список
             moods = [entry['mood'] for time, entry in mood_data[date].items()]
-            # Объединяем список настроений в одну строку через запятую или любой другой разделитель
             mood_message = "    ".join(moods)
             return mood_message
         else:
@@ -74,22 +62,14 @@ def get_only_mood(user_id, date):
     else:
         return "Данные о настроении отсутствуют для данного пользователя"
 
-def format_emojis(text):
-    # Разделяем текст на смайлики
+def format_emojis(text):  # Разделяем текст на смайлики
     emojis = text.split()
-
-    # Ограничиваем количество смайлов до 20
     emojis = emojis[:20]
-
-    # Создаем 5 рядов по 4 смайлика
     rows = []
     for i in range(5):
-        row = '    '.join(emojis[i*4:(i+1)*4])  # 4 смайлика в ряд
+        row = '    '.join(emojis[i*4:(i+1)*4])
         rows.append(row)
-
-    # Объединяем ряды в итоговый текст
     result = '\n'.join(rows)
-
     return result
 
 # ПРОВЕРКА СОЗДАНИЯ БД
