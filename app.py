@@ -63,29 +63,54 @@ def start(message):
 
 
 
-@bot.inline_handler(lambda query: query.query == '')
+@bot.inline_handler(lambda query: query.query == 'Приглашение' or not query.query)
 def default_query(inline_query):
     user_id = inline_query.from_user.id
-    bot.answer_inline_query(
-        inline_query.id, 
-        [
-            types.InlineQueryResultArticle(
-                id='invite', 
-                title='Приглашение',
-                thumbnail_url="https://falbue.github.io/classroom-code/icons/registr.png",
-                description='Отправить приглашение',
-                input_message_content=types.InputTextMessageContent(
-                    message_text="Приглашение"
-                ),
-                reply_markup=types.InlineKeyboardMarkup().add(
-                    types.InlineKeyboardButton(
-                        text='Перейти', 
-                        callback_data=f"invite:{user_id}"  # Убираем url и изменяем callback_data
+    
+    # Если запрос пустой
+    if not inline_query.query:
+        date, time = now_time()
+        text = get_only_mood(user_id, date)
+        text = text.replace("Счастье", "😊")
+        text = text.replace("Грусть", "😢")
+        text = format_emojis(text)
+        bot.answer_inline_query(
+            inline_query.id, 
+            [
+                types.InlineQueryResultArticle(
+                    id='my_mood', 
+                    title='Моя банка',
+                    thumbnail_url="https://falbue.github.io/classroom-code/icons/registr.png",
+                    description='Отправить мою банку',
+                    input_message_content=types.InputTextMessageContent(
+                        message_text=text
+                    ),
+                )
+            ]
+        )
+    # Если запрос равен "Приглашение"
+    else:
+        bot.answer_inline_query(
+            inline_query.id, 
+            [
+                types.InlineQueryResultArticle(
+                    id='invite', 
+                    title='Приглашение',
+                    thumbnail_url="https://falbue.github.io/classroom-code/icons/registr.png",
+                    description='Отправить приглашение',
+                    input_message_content=types.InputTextMessageContent(
+                        message_text="Приглашение"
+                    ),
+                    reply_markup=types.InlineKeyboardMarkup().add(
+                        types.InlineKeyboardButton(
+                            text='Перейти', 
+                            callback_data=f"invite:{user_id}"
+                        )
                     )
                 )
-            )
-        ]
-    )
+            ]
+        )
+
 
 
 
