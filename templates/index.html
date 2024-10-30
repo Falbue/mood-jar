@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Telegram Mini App</title>
     <style>
-        body { margin: 0; overflow: hidden; background: #f0f8ff; }
+        body { margin: 0; overflow: hidden; background: #f0f8ff; position: relative; }
         .ball {
             position: absolute;
             width: 50px;
@@ -13,25 +13,81 @@
             border-radius: 50%;
             background-color: red;
         }
+        .add-button {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #0088cc; /* Telegram color */
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
-    <div class="ball" id="ball"></div>
+    <button class="add-button" onclick="addBall()">Добавить шарик</button>
 
     <script>
-        const ball = document.getElementById('ball');
+        const balls = [];
 
-        window.addEventListener('deviceorientation', (event) => {
-            const x = event.gamma; // Наклон влево/вправо
-            const y = event.beta;  // Наклон вперёд/назад
+        function createBall() {
+            const ball = document.createElement('div');
+            ball.classList.add('ball');
+            document.body.appendChild(ball);
 
-            // Преобразуем значения, чтобы адаптировать перемещение
-            const xPosition = (x + 90) / 180 * window.innerWidth;
-            const yPosition = (y + 90) / 180 * window.innerHeight;
+            // Начальные параметры движения и скорости
+            const ballObj = {
+                element: ball,
+                x: window.innerWidth / 2,
+                y: window.innerHeight / 2,
+                velocityX: (Math.random() - 0.5) * 4,
+                velocityY: (Math.random() - 0.5) * 4,
+                gravity: 0.1,
+                friction: 0.99
+            };
+            balls.push(ballObj);
+        }
 
-            ball.style.left = `${xPosition}px`;
-            ball.style.top = `${yPosition}px`;
-        });
+        function addBall() {
+            createBall();
+        }
+
+        function updatePhysics() {
+            balls.forEach(ball => {
+                // Применяем гравитацию и замедление (friction)
+                ball.velocityY += ball.gravity;
+                ball.velocityX *= ball.friction;
+                ball.velocityY *= ball.friction;
+
+                // Обновляем позицию
+                ball.x += ball.velocityX;
+                ball.y += ball.velocityY;
+
+                // Проверка на столкновение с краями экрана
+                if (ball.x <= 0 || ball.x + 50 >= window.innerWidth) {
+                    ball.velocityX *= -1; // Отскок по x
+                    ball.x = Math.max(0, Math.min(ball.x, window.innerWidth - 50));
+                }
+
+                if (ball.y <= 0 || ball.y + 50 >= window.innerHeight) {
+                    ball.velocityY *= -1; // Отскок по y
+                    ball.y = Math.max(0, Math.min(ball.y, window.innerHeight - 50));
+                }
+
+                // Обновляем стиль элемента для новой позиции
+                ball.element.style.left = `${ball.x}px`;
+                ball.element.style.top = `${ball.y}px`;
+            });
+            requestAnimationFrame(updatePhysics);
+        }
+
+        // Начальное создание шарика
+        createBall();
+        updatePhysics();
     </script>
 </body>
 </html>
