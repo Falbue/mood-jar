@@ -17,6 +17,10 @@ keyboard_main = InlineKeyboardMarkup(row_width=2)
 keyboard_main.add(btn_happy, btn_sad)
 keyboard_main.add(btn_profile)
 
+btn_return_main = InlineKeyboardButton(text="< Назад", callback_data='return:main')
+btn_skip = InlineKeyboardButton(text="Пропустить >", callback_data='skip')
+keyboard_mood_settings = InlineKeyboardMarkup(row_width = 2)
+keyboard_mood_settings.add(btn_return_main, btn_skip)
 
 
 commands = [  # КОМАНДЫ
