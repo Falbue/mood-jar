@@ -10,13 +10,6 @@ from modules.commands import *
 bot = telebot.TeleBot(config.API)  # создание бота
 
 # КЛАВИАТУРЫ
-btn_happy = types.InlineKeyboardButton("😊", callback_data='mood:Счастье')
-btn_sad = types.InlineKeyboardButton("😢", callback_data='mood:Грусть')
-btn_profile = InlineKeyboardButton(text="Профиль", callback_data="profile")
-keyboard_main = InlineKeyboardMarkup(row_width=2)
-keyboard_main.add(btn_happy, btn_sad)
-keyboard_main.add(btn_profile)
-
 btn_return_main = InlineKeyboardButton(text="< Назад", callback_data='return:main')
 btn_skip = InlineKeyboardButton(text="Пропустить >", callback_data='skip')
 keyboard_mood_settings = InlineKeyboardMarkup(row_width = 2)
@@ -30,7 +23,26 @@ keyboard_profile.add(btn_return_main)
 def send_message(message, mood, message_id):
     add_mood(message.chat.id, mood, message.text)
     bot.delete_message(message.chat.id, message.message_id)
+    keyboard_main = create_keyboard_main(message.chat.id)
     bot.edit_message_text(chat_id=message.chat.id, message_id=message_id, text="Добавить настроение", reply_markup=keyboard_main)
+
+
+def create_keyboard_main(user_id):
+    btn_happy = types.InlineKeyboardButton("😊", callback_data='mood:Счастье')
+    btn_sad = types.InlineKeyboardButton("😢", callback_data='mood:Грусть')
+    btn_profile = InlineKeyboardButton(text="Профиль", callback_data="profile")
+    keyboard_main = InlineKeyboardMarkup(row_width=2)
+    keyboard_main.add(btn_happy, btn_sad)
+    user = SQL_request("SELECT * FROM users WHERE id = ?", (int(user_id),))
+    if user[2] != None:
+        frend = SQL_request("SELECT * FROM users WHERE id = ?", (int(user[2]),))
+        frend_name = frend[4]
+        if frend[4] == None: frend_name = 'Друг'
+        btn_frend = InlineKeyboardButton(text=frend_name, callback_data='frend')
+        keyboard_main.add(btn_frend, btn_profile)
+    else:
+        keyboard_main.add(btn_profile)
+    return keyboard_main
 
 
 
@@ -43,6 +55,7 @@ telebot.types.BotCommand("start", "Перезапуск"),
 @bot.message_handler(commands=['start'])  # обработка команды start
 def start(message):
     menu_id = registration(message)
+    keyboard_main = create_keyboard_main(message.chat.id)
     bot.send_message(message.chat.id, text="Добавить настроение", reply_markup=keyboard_main)
     bot.delete_message(message.chat.id, message.id)
     if menu_id:
@@ -114,13 +127,23 @@ def callback_query(call):  # работа с вызовами inline кнопо�
     if call.data == 'skip':
         mood = (call.message.text).split(": ")[1].split("\n")[0]
         add_mood(user_id, mood, "")
+        keyboard_main = create_keyboard_main(user_id)
         bot.edit_message_text(chat_id=user_id, message_id=message_id, text="Добавить настроение", reply_markup=keyboard_main)
+
+    if call.data == 'frend':
+        date, time = now_time()
+        text = get_only_mood(user[2], date)
+        text = text.replace("Счастье", "😊")
+        text = text.replace("Грусть", "😢")
+        text = format_emojis(text)
+        bot.edit_message_text(chat_id=user_id, message_id=message_id, text=text, reply_markup=keyboard_profile)
 
 
     if (call.data).split(":")[0] == 'return':
         bot.clear_step_handler_by_chat_id(chat_id=user_id)
         if (call.data).split(":")[1] == 'main':
-             bot.edit_message_text(chat_id=user_id, message_id=message_id, text="Добавить настроение", reply_markup=keyboard_main)
+            keyboard_main = create_keyboard_main(user_id)
+            bot.edit_message_text(chat_id=user_id, message_id=message_id, text="Добавить настроение", reply_markup=keyboard_main)
         
 
 
