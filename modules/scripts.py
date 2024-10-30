@@ -55,11 +55,8 @@ def add_mood(user_id, mood, reason):
     # Обновление записи в базе данных
     SQL_request("UPDATE users SET mood = ? WHERE id = ?", (json.dumps(mood_data, ensure_ascii=False), user_id))
 
-
-# ПРОВЕРКИ
-if os.path.exists(DB_PATH):
-    pass
-else:
+# ПРОВЕРКА СОЗДАНИЯ БД
+if not os.path.exists(DB_PATH):
     connect = sqlite3.connect(DB_PATH)
     cursor = connect.cursor()
     cursor.execute("""
@@ -75,4 +72,4 @@ else:
     """)
     connect.commit()
     connect.close()
-    print(f"База данных создана")
+    print("База данных создана")
