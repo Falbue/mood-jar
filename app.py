@@ -56,6 +56,23 @@ def callback_query(call):  # работа с вызовами inline кнопо�
         text = profile(user)
         bot.answer_callback_query(callback_query_id=call.id, show_alert=True, text=text)
 
+    if (call.data).split(":")[0] == 'mood':
+        mood = (call.data).split(":")[1]
+        text = f"Вы выбрали: {mood}\n\nВведите причину такого настроения"
+        bot.edit_message_text(chat_id=user_id, message_id=message_id, text=text, reply_markup=keyboard_mood_settings)
+        bot.register_next_step_handler(call.message, send_message, mood, message_id)
+
+    if call.data == 'skip':
+        mood = (call.message.text).split(": ")[1].split("\n")[0]
+        add_mood(user_id, mood, "")
+        bot.edit_message_text(chat_id=user_id, message_id=message_id, text="Добавить настроение", reply_markup=keyboard_main)
+
+
+    if (call.data).split(":")[0] == 'return':
+        bot.clear_step_handler_by_chat_id(chat_id=user_id)
+        if (call.data).split(":")[1] == 'main':
+             bot.edit_message_text(chat_id=user_id, message_id=message_id, text="Добавить настроение", reply_markup=keyboard_main)
+
 
 
 print(f"бот запущен...")
