@@ -1,7 +1,7 @@
 body {
     margin: 0;
     overflow: hidden;
-    background: #f0f8ff;
+    background: var(--tg-theme-bg-color);
     position: relative;
 }
 .ball {
