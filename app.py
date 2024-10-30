@@ -25,6 +25,8 @@ keyboard_mood_settings.add(btn_return_main, btn_skip)
 keyboard_profile = InlineKeyboardMarkup(row_width=2)
 keyboard_profile.add(btn_return_main)
 
+
+
 def send_message(message, mood, message_id):
     add_mood(message.chat.id, mood, message.text)
     bot.delete_message(message.chat.id, message.message_id)
@@ -80,7 +82,12 @@ def callback_query(call):  # работа с вызовами inline кнопо�
     if (call.data).split(":")[0] == 'invite':
         user_id = call.from_user.id
         if str(user_id) != str((call.data).split(":")[1]):
+            user = SQL_request("SELECT * FROM users WHERE id = ?", (int(user_id),))
+            if user ==  None or user == "":
+                date, time  = now_time()
+                SQL_request("""INSERT INTO users (id, message, time_registration)VALUES (?, ?, ?)""", (user_id, 1, date)) 
             SQL_request("UPDATE users SET frend = ? WHERE id = ?", (user_id, (call.data).split(":")[1]))
+            SQL_request("UPDATE users SET frend = ? WHERE id = ?", ((call.data).split(":")[1], user_id))
             bot.edit_message_text(chat_id=None, inline_message_id=call.inline_message_id, text="Приглашение принято!", reply_markup=None)
         else:
             pass
