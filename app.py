@@ -39,9 +39,9 @@ def create_keyboard_main(user_id):
         frend_name = frend[4]
         if frend[4] == None: frend_name = 'Друг'
         btn_frend = InlineKeyboardButton(text=frend_name, callback_data='frend')
-        keyboard_main.add(btn_frend, btn_profile)
     else:
-        keyboard_main.add(btn_profile)
+        btn_frend = InlineKeyboardButton(text="Пригласить друга", switch_inline_query="Приглашение")
+    keyboard_main.add(btn_frend, btn_profile)
     return keyboard_main
 
 
