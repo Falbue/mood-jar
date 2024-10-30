@@ -8,7 +8,6 @@ PARENT_DIR = os.path.dirname(os.path.abspath(__file__))  # текущая дир
 SCRIPT_DIR = os.path.dirname(PARENT_DIR)  # директория уровнем выше
 DB_NAME = 'database.db'
 DB_PATH = f"{SCRIPT_DIR}/{DB_NAME}"
-VERSION = "test"
 
 def now_time():  # Получение текущего времени по МСК
     now = datetime.now()

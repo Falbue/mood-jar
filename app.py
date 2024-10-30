@@ -6,6 +6,8 @@ import config
 from modules.scripts import *
 from modules.commands import *
 
+VERSION = "1.0.1"
+
 
 bot = telebot.TeleBot(config.API)  # создание бота
 
@@ -56,7 +58,10 @@ telebot.types.BotCommand("start", "Перезапуск"),
 def start(message):
     menu_id = registration(message)
     keyboard_main = create_keyboard_main(message.chat.id)
-    bot.send_message(message.chat.id, text="Добавить настроение", reply_markup=keyboard_main)
+    text = "Добавить настроение"
+    if message.chat.id == config.ADMIN:
+        text = f"{VERSION}\n\n{text}"
+    bot.send_message(message.chat.id, text, reply_markup=keyboard_main)
     bot.delete_message(message.chat.id, message.id)
     if menu_id:
         bot.delete_message(message.chat.id, menu_id)
@@ -154,7 +159,10 @@ def callback_query(call):  # работа с вызовами inline кнопо�
         mood = (call.message.text).split(": ")[1].split("\n")[0]
         add_mood(user_id, mood, "")
         keyboard_main = create_keyboard_main(user_id)
-        bot.edit_message_text(chat_id=user_id, message_id=message_id, text="Добавить настроение", reply_markup=keyboard_main)
+        text = "Добавить настроение"
+        if message.chat.id == config.ADMIN:
+            text = f"{VERSION}\n\n{text}"
+        bot.edit_message_text(chat_id=user_id, message_id=message_id, text=text, reply_markup=keyboard_main)
 
     if call.data == 'frend':
         date, time = now_time()
@@ -169,7 +177,10 @@ def callback_query(call):  # работа с вызовами inline кнопо�
         bot.clear_step_handler_by_chat_id(chat_id=user_id)
         if (call.data).split(":")[1] == 'main':
             keyboard_main = create_keyboard_main(user_id)
-            bot.edit_message_text(chat_id=user_id, message_id=message_id, text="Добавить настроение", reply_markup=keyboard_main)
+            text = "Добавить настроение"
+            if message.chat.id == config.ADMIN:
+                text = f"{VERSION}\n\n{text}"
+            bot.edit_message_text(chat_id=user_id, message_id=message_id, text=text, reply_markup=keyboard_main)
         
 
 
