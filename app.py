@@ -1,6 +1,15 @@
 from flask import Flask, render_template
+import os
 
 app = Flask(__name__)
+
+def get_files(directory, extensions):
+    file_list = []
+    for root, _, files in os.walk(directory):
+        for file in files:
+            if file.endswith(tuple(extensions)):
+                file_list.append(os.path.relpath(os.path.join(root, file), directory))
+    return file_list
 
 @app.context_processor
 def inject_files():
