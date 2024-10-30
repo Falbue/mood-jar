@@ -66,11 +66,12 @@ def start(message):
 @bot.inline_handler(lambda query: query.query == 'Приглашение' or not query.query)
 def default_query(inline_query):
     user_id = inline_query.from_user.id
+    user = SQL_request("SELECT * FROM users WHERE id = ?", (int(user_id),))
     
     # Если запрос пустой
     if not inline_query.query:
         date, time = now_time()
-        text = get_only_mood(user_id, date)
+        text = get_only_mood(user[0], date)
         text = text.replace("Счастье", "😊")
         text = text.replace("Грусть", "😢")
         text = format_emojis(text)
@@ -104,7 +105,7 @@ def default_query(inline_query):
                     reply_markup=types.InlineKeyboardMarkup().add(
                         types.InlineKeyboardButton(
                             text='Перейти', 
-                            callback_data=f"invite:{user_id}"
+                            callback_data=f"invite:{user[0]}"
                         )
                     )
                 )
