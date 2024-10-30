@@ -31,6 +31,29 @@ def SQL_request(request, params=()):  # Выполнение SQL-запросо�
         connect.commit()
         connect.close()
 
+def add_mood(user_id, mood, reason):
+    current_date, current_time = now_time()
+    
+    # Получение текущего состояния поля mood для пользователя
+    result = SQL_request("SELECT mood FROM users WHERE id = ?", (user_id,))
+    
+    if result and result[0]:  # Если запись существует и mood не пустой
+        mood_data = json.loads(result[0])
+    else:
+        mood_data = {}  # Если mood пустой, создаем пустой словарь
+    
+    # Проверка количества записей настроения на текущий день
+    if current_date not in mood_data:
+        mood_data[current_date] = {}  # Если текущей даты нет, добавляем пустой словарь для нее
+    
+    if len(mood_data[current_date]) < 20:  # Проверка ограничения на 20 записей
+        mood_data[current_date][current_time] = {'mood': mood, 'reason': reason}
+    else:
+        print("Достигнуто максимальное количество записей на текущий день")
+        return
+    
+    # Обновление записи в базе данных
+    SQL_request("UPDATE users SET mood = ? WHERE id = ?", (json.dumps(mood_data, ensure_ascii=False), user_id))
 
 
 # ПРОВЕРКИ
