@@ -10,9 +10,6 @@ DB_NAME = 'database.db'
 DB_PATH = f"{SCRIPT_DIR}/{DB_NAME}"
 VERSION = "test"
 
-
-
-
 def now_time():  # Получение текущего времени по МСК
     now = datetime.now()
     tz = pytz.timezone('Europe/Moscow')
@@ -21,7 +18,7 @@ def now_time():  # Получение текущего времени по МС�
     current_date = now_moscow.strftime("%Y.%m.%d")
     return current_date, current_time
 
-def SQL_request(request, params=()):  # sql запросы
+def SQL_request(request, params=()):  # Выполнение SQL-запросов
     connect = sqlite3.connect(DB_PATH)
     cursor = connect.cursor()
     if request.strip().lower().startswith('select'):
