@@ -57,8 +57,14 @@ def callback_query(call):  # работа с вызовами inline кнопо�
     print(call.data)
 
     if call.data == 'profile':
-        text = profile(user)
-        bot.answer_callback_query(callback_query_id=call.id, show_alert=True, text=text)
+        # text = profile(user)
+        # bot.answer_callback_query(callback_query_id=call.id, show_alert=True, text=text)
+        date, time = now_time()
+        text = get_only_mood(user_id, date)
+        text = text.replace("Счастье", "😊")
+        text = text.replace("Грусть", "😢")
+        text = format_emojis(text)
+        bot.edit_message_text(chat_id=user_id, message_id=message_id, text=text, reply_markup=keyboard_profile)
 
     if (call.data).split(":")[0] == 'mood':
         mood = (call.data).split(":")[1]
