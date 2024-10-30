@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Telegram Mini App</title>
+    <style>
+        body { margin: 0; overflow: hidden; background: #f0f8ff; }
+        .ball {
+            position: absolute;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background-color: red;
+        }
+    </style>
+</head>
+<body>
+    <div class="ball" id="ball"></div>
+
+    <script>
+        const ball = document.getElementById('ball');
+
+        window.addEventListener('deviceorientation', (event) => {
+            const x = event.gamma; // Наклон влево/вправо
+            const y = event.beta;  // Наклон вперёд/назад
+
+            // Преобразуем значения, чтобы адаптировать перемещение
+            const xPosition = (x + 90) / 180 * window.innerWidth;
+            const yPosition = (y + 90) / 180 * window.innerHeight;
+
+            ball.style.left = `${xPosition}px`;
+            ball.style.top = `${yPosition}px`;
+        });
+    </script>
+</body>
+</html>
