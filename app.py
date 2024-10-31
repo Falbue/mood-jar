@@ -6,7 +6,7 @@ import config
 from modules.scripts import *
 from modules.commands import *
 
-VERSION = "1.4.1"
+VERSION = "1.4.2"
 
 
 bot = telebot.TeleBot(config.API)  # создание бота
@@ -106,7 +106,7 @@ def create_keyboard_main(user_id):
     btn_profile = InlineKeyboardButton(text="Профиль", callback_data="profile")
     keyboard_main = InlineKeyboardMarkup(row_width=3)
     keyboard_main.add(*buttons)
-    if user[2] != "'{}'" or user[2] != None:
+    if user[2] != None or user[2] != "{}":
         btn_my_friends = InlineKeyboardButton(text="Друзья", callback_data='friends')
     else:
         btn_my_friends = InlineKeyboardButton(text="Пригласить друга", switch_inline_query="Приглашение")
