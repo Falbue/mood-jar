@@ -30,12 +30,14 @@ def send_message(message, mood, message_id):
 
 
 def create_keyboard_main(user_id):
-    btn_happy = types.InlineKeyboardButton("😊", callback_data='mood:Счастье')
-    btn_sad = types.InlineKeyboardButton("😢", callback_data='mood:Грусть')
-    btn_nevermore = types.InlineKeyboardButton(text='😐', callback_data='mood:Равнодушие')
+    btn_happy = types.InlineKeyboardButton("😊", callback_data='mood:Радость')
+    btn_sad = types.InlineKeyboardButton("😢", callback_data='mood:Печаль')
+    btn_neutral = types.InlineKeyboardButton("😐", callback_data='mood:Равнодушие')
+    btn_excited = types.InlineKeyboardButton("😁", callback_data='mood:Восторг')
+    btn_tired = types.InlineKeyboardButton("😴", callback_data='mood:Усталость')
     btn_profile = InlineKeyboardButton(text="Профиль", callback_data="profile")
-    keyboard_main = InlineKeyboardMarkup(row_width=2)
-    keyboard_main.add(btn_happy,btn_nevermore, btn_sad)
+    keyboard_main = InlineKeyboardMarkup(row_width=3)
+    keyboard_main.add(btn_happy,btn_neutral, btn_excited, btn_tired, btn_sad)
     user = SQL_request("SELECT * FROM users WHERE id = ?", (int(user_id),))
     if user[2] != None:
         frend = SQL_request("SELECT * FROM users WHERE id = ?", (int(user[2]),))
@@ -78,9 +80,6 @@ def default_query(inline_query):
     if not inline_query.query:
         date, time = now_time()
         text = get_only_mood(user[0], date)
-        text = text.replace("Счастье", "😊")
-        text = text.replace("Грусть", "😢")
-        text = format_emojis(text)
         bot.answer_inline_query(
             inline_query.id, 
             [
@@ -140,15 +139,12 @@ def callback_query(call):  # работа с вызовами inline кнопо�
         user_id = call.message.chat.id
         message_id = call.message.message_id
         user = SQL_request("SELECT * FROM users WHERE id = ?", (int(user_id),))
+        SQL_request("UPDATE users SET username = ? WHERE id = ?", (call.from_user.username, user_id))
         print(call.data)
 
     if call.data == 'profile':
         date, time = now_time()
         text = get_only_mood(user_id, date)
-        text = text.replace("Счастье", "😊")
-        text = text.replace("Грусть", "😢")
-        text = text.replace("Равнодушие", "😐")
-        text = format_emojis(text)
         bot.edit_message_text(chat_id=user_id, message_id=message_id, text=text, reply_markup=keyboard_profile)
 
     if (call.data).split(":")[0] == 'mood':
@@ -169,9 +165,6 @@ def callback_query(call):  # работа с вызовами inline кнопо�
     if call.data == 'frend':
         date, time = now_time()
         text = get_only_mood(user[2], date)
-        text = text.replace("Счастье", "😊")
-        text = text.replace("Грусть", "😢")
-        text = format_emojis(text)
         bot.edit_message_text(chat_id=user_id, message_id=message_id, text=text, reply_markup=keyboard_profile)
 
 

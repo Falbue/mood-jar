@@ -55,9 +55,15 @@ def get_only_mood(user_id, date):  # Извлекаем данные настр�
         if date in mood_data:
             moods = [entry['mood'] for time, entry in mood_data[date].items()]
             mood_message = "    ".join(moods)
+            mood_message = mood_message.replace("Радость", "😊")
+            mood_message = mood_message.replace("Печаль", "😢")
+            mood_message = mood_message.replace("Равнодушие", "😐")
+            mood_message = mood_message.replace("Восторг", "😁")
+            mood_message = mood_message.replace("Усталость", "😴")
+            mood_message = format_emojis(mood_message)
             return mood_message
         else:
-            return f"Нет записей настроений за {date}"
+            return f"Нет записей настроений"
     else:
         return "Данные о настроении отсутствуют для данного пользователя"
 
