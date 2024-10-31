@@ -6,7 +6,7 @@ import config
 from modules.scripts import *
 from modules.commands import *
 
-VERSION = "1.0.1.1"
+VERSION = "1.0.1.2"
 
 
 bot = telebot.TeleBot(config.API)  # создание бота
@@ -32,9 +32,10 @@ def send_message(message, mood, message_id):
 def create_keyboard_main(user_id):
     btn_happy = types.InlineKeyboardButton("😊", callback_data='mood:Счастье')
     btn_sad = types.InlineKeyboardButton("😢", callback_data='mood:Грусть')
+    btn_nevermore = types.InlineKeyboardButton(text=😐, callback_data='mood:Равнодушие')
     btn_profile = InlineKeyboardButton(text="Профиль", callback_data="profile")
     keyboard_main = InlineKeyboardMarkup(row_width=2)
-    keyboard_main.add(btn_happy, btn_sad)
+    keyboard_main.add(btn_happy,btn_nevermore, btn_sad)
     user = SQL_request("SELECT * FROM users WHERE id = ?", (int(user_id),))
     if user[2] != None:
         frend = SQL_request("SELECT * FROM users WHERE id = ?", (int(user[2]),))
@@ -146,6 +147,7 @@ def callback_query(call):  # работа с вызовами inline кнопо�
         text = get_only_mood(user_id, date)
         text = text.replace("Счастье", "😊")
         text = text.replace("Грусть", "😢")
+        text = text.replace("Равнодушие", "😐")
         text = format_emojis(text)
         bot.edit_message_text(chat_id=user_id, message_id=message_id, text=text, reply_markup=keyboard_profile)
 
