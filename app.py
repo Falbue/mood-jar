@@ -6,7 +6,7 @@ import config
 from modules.scripts import *
 from modules.commands import *
 
-VERSION = "1.0.3"
+VERSION = "1.0.3-lock"
 
 
 bot = telebot.TeleBot(config.API)  # создание бота
@@ -28,7 +28,7 @@ btn_edit_mood = InlineKeyboardButton('Настроения', callback_data='edit
 btn_edit_topics = InlineKeyboardButton("Топики", callback_data='edit:topics')
 btn_edit_frends = InlineKeyboardButton("Друзья", callback_data='edit:frends')
 btn_return_profile = InlineKeyboardButton("< Назад", callback_data='profile')
-keyboard_settings.add(btn_edit_mood, btn_edit_frends)
+keyboard_settings.add(btn_edit_mood)
 keyboard_settings.add(btn_return_profile)
 
 
@@ -97,7 +97,7 @@ def create_keyboard_main(user_id):
         btn_frend = InlineKeyboardButton(text="Друзья", callback_data='frends')
     else:
         btn_frend = InlineKeyboardButton(text="Пригласить друга", switch_inline_query="Приглашение")
-    keyboard_main.add(btn_frend, btn_profile)
+    keyboard_main.add(btn_profile)
     return keyboard_main
 
 
