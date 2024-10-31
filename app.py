@@ -183,7 +183,9 @@ def callback_query(call):  # работа с вызовами inline кнопо�
             user = SQL_request("SELECT * FROM users WHERE id = ?", (int(user_id),))
             if user ==  None or user == "":
                 date, time  = now_time()
-                SQL_request("""INSERT INTO users (id, message, time_registration)VALUES (?, ?, ?)""", (user_id, 1, date)) 
+                mood = {"😊":"Радость", "😢":"Грусть", "😐":"Равнодушие", "😁":"Восторг", "😴":"Усталость"}
+                mood_json = json.dumps(mood, ensure_ascii=False)
+                SQL_request("""INSERT INTO users (id, message, mood, time_registration)VALUES (?, ?, ?, ?)""", (user_id, 1, mood_json, date)) 
             SQL_request("UPDATE users SET frends = ? WHERE id = ?", (user_id, (call.data).split(":")[1]))
             SQL_request("UPDATE users SET frends = ? WHERE id = ?", ((call.data).split(":")[1], user_id))
             bot.edit_message_text(chat_id=None, inline_message_id=call.inline_message_id, text="Приглашение принято!", reply_markup=None)
