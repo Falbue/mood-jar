@@ -6,7 +6,7 @@ import config
 from modules.scripts import *
 from modules.commands import *
 
-VERSION = "1.0.2"
+VERSION = "1.0.2.1"
 
 
 bot = telebot.TeleBot(config.API)  # создание бота
@@ -49,16 +49,17 @@ def get_mood(message, edit, smile, message_id):
     find_list(edit, message.chat.id, message_id)
 
 def find_list(find, user_id, message_id):
+    keyboard = InlineKeyboardMarkup(row_width=2)
     result = SQL_request(f"SELECT {find} FROM users WHERE id = ?", (user_id,))
     result = result[0]
-    result = json.loads(result)
-    data = {}
-    for key, value in result.items():
-        new_value = f"{key} {value}"
-        data[new_value] = key
-    buttons = create_buttons(data, f'rename_{find}')
-    keyboard = InlineKeyboardMarkup(row_width=2)
-    keyboard.add(*buttons)
+    if result != None:
+        result = json.loads(result)
+        data = {}
+        for key, value in result.items():
+            new_value = f"{key} {value}"
+            data[new_value] = key
+        buttons = create_buttons(data, f'rename_{find}')
+        keyboard.add(*buttons)
     btn_add = InlineKeyboardButton("Добавить +", callback_data=f'add:{find}')
     keyboard.add(btn_return_settings, btn_add)
     bot.edit_message_text(chat_id=user_id, message_id=message_id, text="Выберите пункт, что бы его изменить", reply_markup=keyboard)
@@ -79,8 +80,13 @@ def create_buttons(data, prefix):
 def create_keyboard_main(user_id):
     user = SQL_request("SELECT * FROM users WHERE id = ?", (int(user_id),))
     mood = user[7]
-    mood_dict = json.loads(mood)
-    buttons = create_buttons(mood_dict, "mood")
+    if mood == None:
+        buttons = []
+        btn_add_mood = InlineKeyboardButton("Добавить настроение +", callback_data='add:mood')
+        buttons.append(btn_add_mood)
+    else:
+        mood_dict = json.loads(mood)
+        buttons = create_buttons(mood_dict, "mood")
         
 
     btn_profile = InlineKeyboardButton(text="Профиль", callback_data="profile")

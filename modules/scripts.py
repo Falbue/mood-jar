@@ -46,19 +46,23 @@ def add_mood(user_id, mood, reason):
 def get_only_mood(user_id, date):
     result = SQL_request("SELECT jar FROM users WHERE id = ?", (user_id,))
     emotions = SQL_request("SELECT mood FROM users WHERE id = ?", (user_id,))
-    emotions = json.loads(emotions[0])
-    if result and result[0]:
-        mood_data = json.loads(result[0])
-        if date in mood_data:
-            moods = [entry['mood'] for time, entry in mood_data[date].items()]
-            mood_message = "    ".join(
-                next((emoji for emoji, text in emotions.items() if text.lower() == mood.lower()), mood)
-                for mood in moods
-            )
-            mood_message = format_emojis(mood_message)
-            return mood_message
+    print(emotions)
+    if emotions != (None,):
+        emotions = json.loads(emotions[0])
+        if result and result[0]:
+            mood_data = json.loads(result[0])
+            if date in mood_data:
+                moods = [entry['mood'] for time, entry in mood_data[date].items()]
+                mood_message = "    ".join(
+                    next((emoji for emoji, text in emotions.items() if text.lower() == mood.lower()), mood)
+                    for mood in moods
+                )
+                mood_message = format_emojis(mood_message)
+                return mood_message
+            else:
+                return "Нет записей настроений"
         else:
-            return "Нет записей настроений"
+            return "Данные о настроении отсутствуют"
     else:
         return "Данные о настроении отсутствуют"
 
