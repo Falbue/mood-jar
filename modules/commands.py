@@ -8,8 +8,10 @@ def registration(message):
     date, time  = now_time()
     user = SQL_request("SELECT 0 FROM users WHERE id = ?", (user_id,))
     if user is None:
-        SQL_request("""INSERT INTO users (id, message, time_registration)
-                          VALUES (?, ?, ?)""", (user_id, message_id+1, date))
+        mood = {"😊":"Радость", "😢":"Грусть", "😐":"Равнодушие", "😁":"Восторг", "😴":"Усталость"}
+        mood_json = json.dumps(mood, ensure_ascii=False)
+        SQL_request("""INSERT INTO users (id, message, time_registration, mood)
+                          VALUES (?, ?, ?, ?)""", (user_id, message_id+1, date, mood_json))
         print(f"Зарегистрирован новый пользователь")
     else:
         menu_id = SQL_request("SELECT message FROM users WHERE id = ?", (user_id,))
