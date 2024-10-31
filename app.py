@@ -6,7 +6,7 @@ import config
 from modules.scripts import *
 from modules.commands import *
 
-VERSION = "1.0.1.3"
+VERSION = "1.0.2"
 
 
 bot = telebot.TeleBot(config.API)  # создание бота
