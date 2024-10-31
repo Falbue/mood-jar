@@ -32,7 +32,7 @@ def send_message(message, mood, message_id):
 def create_keyboard_main(user_id):
     btn_happy = types.InlineKeyboardButton("😊", callback_data='mood:Счастье')
     btn_sad = types.InlineKeyboardButton("😢", callback_data='mood:Грусть')
-    btn_nevermore = types.InlineKeyboardButton(text=😐, callback_data='mood:Равнодушие')
+    btn_nevermore = types.InlineKeyboardButton(text='😐', callback_data='mood:Равнодушие')
     btn_profile = InlineKeyboardButton(text="Профиль", callback_data="profile")
     keyboard_main = InlineKeyboardMarkup(row_width=2)
     keyboard_main.add(btn_happy,btn_nevermore, btn_sad)
