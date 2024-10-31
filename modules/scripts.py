@@ -107,6 +107,27 @@ def add_value(message, edit):
     updated_emotions = json.dumps(emotions, ensure_ascii=False)
     SQL_request("UPDATE users SET mood = ? WHERE id = ?", (updated_emotions, user_id))
 
+def add_frends(my_id, frend_id, call):
+    print(f"Кнопку создал {my_id}")
+    print(f"Кнопку вызвал {frend_id}")
+    if str(my_id) != str(frend_id):
+        user = SQL_request("SELECT * FROM users WHERE id = ?", (int(my_id),))
+        if user ==  None or user == "":
+            date, time  = now_time()
+            mood = {"😊":"Радость", "😢":"Грусть", "😐":"Равнодушие", "😁":"Восторг", "😴":"Усталость"}
+            mood_json = json.dumps(mood, ensure_ascii=False)
+            SQL_request("""INSERT INTO users (id, message, mood, time_registration)VALUES (?, ?, ?, ?)""", (user_id, 1, mood_json, date)) 
+        SQL_request("UPDATE users SET frends = ? WHERE id = ?", (json.dumps({frend_id:""}), my_id))
+        SQL_request("UPDATE users SET frends = ? WHERE id = ?", (json.dumps({my_id:""}), frend_id))
+    else:
+        print("Вам нельзя")
+        return False
+
+
+def get_frends(data):
+    frends = json.loads(data)
+    print(frends)
+
 
 # ПРОВЕРКА СОЗДАНИЯ БД
 if not os.path.exists(DB_PATH):
@@ -116,7 +137,7 @@ if not os.path.exists(DB_PATH):
         CREATE TABLE users (
             id INTEGER,
             message INTEGER, 
-            frends INTEGER,
+            frends JSON,
             time_registration TIME,
             username TEXT,
             topics TEXT,

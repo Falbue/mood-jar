@@ -28,7 +28,7 @@ btn_edit_mood = InlineKeyboardButton('Настроения', callback_data='edit
 btn_edit_topics = InlineKeyboardButton("Топики", callback_data='edit:topics')
 btn_edit_frends = InlineKeyboardButton("Друзья", callback_data='edit:frends')
 btn_return_profile = InlineKeyboardButton("< Назад", callback_data='profile')
-keyboard_settings.add(btn_edit_mood, btn_edit_topics, btn_edit_frends)
+keyboard_settings.add(btn_edit_mood, btn_edit_frends)
 keyboard_settings.add(btn_return_profile)
 
 
@@ -94,10 +94,7 @@ def create_keyboard_main(user_id):
     keyboard_main.add(*buttons)
     user = SQL_request("SELECT * FROM users WHERE id = ?", (int(user_id),))
     if user[2] != None:
-        frends = SQL_request("SELECT * FROM users WHERE id = ?", (int(user[2]),))
-        frend_name = frend[4]
-        if frend[4] == None: frend_name = 'Друг'
-        btn_frend = InlineKeyboardButton(text=frend_name, callback_data='frend')
+        btn_frend = InlineKeyboardButton(text="Друзья", callback_data='frends')
     else:
         btn_frend = InlineKeyboardButton(text="Пригласить друга", switch_inline_query="Приглашение")
     keyboard_main.add(btn_frend, btn_profile)
@@ -128,9 +125,8 @@ def start(message):
 @bot.inline_handler(lambda query: query.query == 'Приглашение' or not query.query)
 def default_query(inline_query):
     user_id = inline_query.from_user.id
+    print(f"Кнопку создает {user_id}")
     user = SQL_request("SELECT * FROM users WHERE id = ?", (int(user_id),))
-    
-    # Если запрос пустой
     if not inline_query.query:
         date, time = now_time()
         text = get_only_mood(user[0], date)
@@ -146,9 +142,9 @@ def default_query(inline_query):
                         message_text=text
                     ),
                 )
-            ]
+            ],
+            cache_time=0
         )
-    # Если запрос равен "Приглашение"
     else:
         bot.answer_inline_query(
             inline_query.id, 
@@ -168,8 +164,10 @@ def default_query(inline_query):
                         )
                     )
                 )
-            ]
+            ],
+            cache_time=0
         )
+
 
 
 
@@ -179,15 +177,9 @@ def default_query(inline_query):
 def callback_query(call):  # работа с вызовами inline кнопок
     if (call.data).split(":")[0] == 'invite':
         user_id = call.from_user.id
-        if str(user_id) != str((call.data).split(":")[1]):
-            user = SQL_request("SELECT * FROM users WHERE id = ?", (int(user_id),))
-            if user ==  None or user == "":
-                date, time  = now_time()
-                mood = {"😊":"Радость", "😢":"Грусть", "😐":"Равнодушие", "😁":"Восторг", "😴":"Усталость"}
-                mood_json = json.dumps(mood, ensure_ascii=False)
-                SQL_request("""INSERT INTO users (id, message, mood, time_registration)VALUES (?, ?, ?, ?)""", (user_id, 1, mood_json, date)) 
-            SQL_request("UPDATE users SET frends = ? WHERE id = ?", (user_id, (call.data).split(":")[1]))
-            SQL_request("UPDATE users SET frends = ? WHERE id = ?", ((call.data).split(":")[1], user_id))
+        my_id = call.data.split(":")[1]
+        result = add_frends(my_id, user_id, call)
+        if result == True:
             bot.edit_message_text(chat_id=None, inline_message_id=call.inline_message_id, text="Приглашение принято!", reply_markup=None)
         else:
             pass
@@ -197,7 +189,7 @@ def callback_query(call):  # работа с вызовами inline кнопо�
         message_id = call.message.message_id
         user = SQL_request("SELECT * FROM users WHERE id = ?", (int(user_id),))
         SQL_request("UPDATE users SET username = ? WHERE id = ?", (call.from_user.username, user_id))
-        print(call.data)
+        print(user_id, call.data)
 
     if call.data == 'profile':
         date, time = now_time()
@@ -263,6 +255,11 @@ def callback_query(call):  # работа с вызовами inline кнопо�
         btn = InlineKeyboardButton("< Назад", callback_data=f"edit:{edit}")
         keyboard.add(btn)
         bot.edit_message_text(chat_id=user_id, message_id=message_id, text=text, reply_markup=keyboard, parse_mode="MarkdownV2")
+
+    if call.data == "frends":
+        text = get_frends(user[2])
+        print(text)
+
 
 
 
