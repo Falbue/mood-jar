@@ -72,7 +72,6 @@ def edit_value(user_id, edit, edit_value, text):
     return f"изменено!"
 
 def delete_value(user_id, value, find):
-    print(f"Удаляем: {value}")
     result = SQL_request(f"SELECT {find} FROM users WHERE id = ?", (user_id,))
     values = json.loads(result[0])
     if value in values:
@@ -95,8 +94,6 @@ def add_value(message, edit):
     SQL_request("UPDATE users SET mood = ? WHERE id = ?", (updated_emotions, user_id))
 
 def add_friends(my_id, frend_id, call):
-    print(f"Кнопку создал {my_id}")
-    print(f"Кнопку вызвал {frend_id}")
     friend_name = call.from_user.first_name
     
     if str(my_id) != str(frend_id):

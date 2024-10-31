@@ -6,7 +6,7 @@ import config
 from modules.scripts import *
 from modules.commands import *
 
-VERSION = "1.4.0"
+VERSION = "1.4.1"
 
 
 bot = telebot.TeleBot(config.API)  # создание бота
@@ -75,8 +75,6 @@ def keyboard_edit(find, user_id, message_id):
     bot.edit_message_text(chat_id=user_id, message_id=message_id, text=f"Выберите {type_edit}, что бы его изменить", reply_markup=keyboard)
 
 def create_buttons(data, prefix):
-    # print(data)
-    print(f"Prefix: {prefix}")
     buttons = []
     for text, callback in data.items():
         if not isinstance(text, str):
@@ -203,7 +201,6 @@ def callback_query(call):  # работа с вызовами inline кнопо�
         message_id = call.message.message_id
         user = SQL_request("SELECT * FROM users WHERE id = ?", (int(user_id),))
         SQL_request("UPDATE users SET username = ? WHERE id = ?", (call.from_user.username, user_id))
-        print(user_id, call.data)
 
     if call.data == 'profile':
         date, time = now_time()
@@ -283,7 +280,6 @@ def callback_query(call):  # работа с вызовами inline кнопо�
     if (call.data).split(":")[0] == "open_friends":
         date, time = now_time()
         friend_id = int((call.data).split(":")[1])
-        print(f"id друга {friend_id}")
         text = get_only_mood(friend_id, date)
         bot.edit_message_text(chat_id=user_id, message_id=message_id, text=text, reply_markup=keyboard_friends)
 
