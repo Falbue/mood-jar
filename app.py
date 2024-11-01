@@ -106,10 +106,10 @@ def create_keyboard_main(user_id):
     btn_profile = InlineKeyboardButton(text="Профиль", callback_data="profile")
     keyboard_main = InlineKeyboardMarkup(row_width=3)
     keyboard_main.add(*buttons)
-    if user[2] != None or user[2] != "{}":
-        btn_my_friends = InlineKeyboardButton(text="Друзья", callback_data='friends')
-    else:
+    if user[2] == None or user[2] == json.dumps({}):
         btn_my_friends = InlineKeyboardButton(text="Пригласить друга", switch_inline_query="Приглашение")
+    else:
+        btn_my_friends = InlineKeyboardButton(text="Друзья", callback_data='friends')
     keyboard_main.add(btn_my_friends, btn_profile)
     return keyboard_main
 
