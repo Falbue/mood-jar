@@ -30,7 +30,7 @@ def SQL_request(request, params=()):  # Выполнение SQL-запросо�
         connect.commit()
         connect.close()
 
-def add_mood(user_id, mood, reason):
+def add_mood(user_id, mood, reason, topic_list):
     current_date, current_time = now_time()
     result = SQL_request("SELECT jar FROM users WHERE id = ?", (user_id,))
     if result and result[0]:
@@ -40,7 +40,7 @@ def add_mood(user_id, mood, reason):
     if current_date not in mood_data:
         mood_data[current_date] = {}
 
-    mood_data[current_date][current_time] = {'mood': mood, 'reason': reason}
+    mood_data[current_date][current_time] = {'mood': mood, 'reason': reason, "topics": topic_list}
     SQL_request("UPDATE users SET jar = ? WHERE id = ?", (json.dumps(mood_data, ensure_ascii=False), user_id))
 
 def get_mood_data(user_id, date, mode="emojis"):
@@ -55,14 +55,16 @@ def get_mood_data(user_id, date, mode="emojis"):
                 return format_emojis(emojis)
             elif mode == "text":
                 text = ''.join(
-                    f'{entry["mood"]} ({emoji_dict.get(entry["mood"], "Неизвестно")}): {entry["reason"]}\n\n'
+                    f'{entry["mood"]} ({emoji_dict.get(entry["mood"], "Неизвестно")})'
+                    + (f' {", ".join(entry["topics"])}' if entry.get("topics") else "")
+                    + f': {entry["reason"]}\n\n'
                     for time, entry in mood_data[date].items()
                 )
                 return text
         else:
-            return "Нет записей настроений"
+            return "Сегодня пользователь ещё не добавил настроение"
     else:
-        return "Данные о настроении отсутствуют"
+        return "Пользователь ещё не пользовался банкой настроения"
 
 def format_emojis(emojis, per_row=4, space="    "):
     grouped_emojis = [emojis[i:i + per_row] for i in range(0, len(emojis), per_row)]
@@ -89,14 +91,24 @@ def delete_value(user_id, value, find):
     else:
         return f"Смайлик {smile} не найден в записях"
 
-def add_value(message, edit):
+def add_value(message, edit, find):
     user_id = message.chat.id
-    smile = message.text
-    result = SQL_request("SELECT mood FROM users WHERE id = ?", (user_id,))
-    emotions = json.loads(result[0])
-    emotions[smile] = ""
-    updated_emotions = json.dumps(emotions, ensure_ascii=False)
-    SQL_request("UPDATE users SET mood = ? WHERE id = ?", (updated_emotions, user_id))
+    text = message.text
+    result = SQL_request(f"SELECT {find} FROM users WHERE id = ?", (user_id,))
+    if result[0]:
+        values = json.loads(result[0])
+    else:
+        values = {}
+    if find == "topics":
+        if values:
+            new_id_topics = max(map(int, values.keys())) + 1
+        else:
+            new_id_topics = 1
+        values[new_id_topics] = text
+    else:
+        values[text] = "ИЗМЕНИТЬ"
+    updated_values = json.dumps(values, ensure_ascii=False)
+    SQL_request(f"UPDATE users SET {find} = ? WHERE id = ?", (updated_values, user_id))
 
 def add_friends(my_id, frend_id, call):
     friend_name = call.from_user.first_name
