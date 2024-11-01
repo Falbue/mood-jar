@@ -96,7 +96,11 @@ def delete_value(user_id, value, find):
 def add_value(message, edit, find):
     user_id = message.chat.id
     text = message.text
+
     result = SQL_request(f"SELECT {find} FROM users WHERE id = ?", (user_id,))
+    if find == "mood" and (not isinstance(text, str) or len(text.split()) != 1):
+        return {"notification": "Нужно отправить одно эмоджи!"}
+
     if result[0]:
         values = json.loads(result[0])
     else:
