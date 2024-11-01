@@ -1,4 +1,4 @@
-from modules.scripts import *
+from bot_modules.scripts import *
 
 def registration(message):
     user_id = message.chat.id

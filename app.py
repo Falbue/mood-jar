@@ -3,8 +3,8 @@ from telebot import types
 import telebot
 
 import config
-from modules.scripts import *
-from modules.commands import *
+from bot_modules.scripts import *
+from bot_modules.commands import *
 
 
 bot = telebot.TeleBot(config.API)  # создание бота
@@ -281,6 +281,7 @@ def callback_query(call):  # работа с вызовами inline кнопо�
         keyboard.add(btn, btn_delete)
         bot.edit_message_text(chat_id=user_id, message_id=message_id, text=text, reply_markup=keyboard)
         bot.register_next_step_handler(call.message, get_value, edit, find, message_id)
+
 
     if (call.data).split("_")[0] == 'delete':
         edit = (call.data).split("_")[1]
