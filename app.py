@@ -334,6 +334,10 @@ def callback_query(call):  # работа с вызовами inline кнопо�
             keyboard_main = create_keyboard_main(user_id)
             text = "Добавить настроение"
             bot.edit_message_text(chat_id=user_id, message_id=message_id, text=text, reply_markup=keyboard_main)
+
+@bot.message_handler(func=lambda message: True)
+def handle_text_message(message): # удаляет сообщения от пользователя
+    bot.delete_message(message.chat.id, message.message_id)
         
 
 print(f"бот запущен...")
