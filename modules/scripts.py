@@ -9,7 +9,7 @@ PARENT_DIR = os.path.dirname(os.path.abspath(__file__))  # текущая дир
 SCRIPT_DIR = os.path.dirname(PARENT_DIR)  # директория уровнем выше
 DB_NAME = 'database.db'
 DB_PATH = f"{SCRIPT_DIR}/{DB_NAME}"
-VERSION = "1.7.0"
+VERSION = "1.7.1"
 
 def now_time():  # Получение текущего времени по МСК
     now = datetime.now()
@@ -115,6 +115,9 @@ def add_value(message, edit, find):
         values[text] = "ИЗМЕНИТЬ"
     updated_values = json.dumps(values, ensure_ascii=False)
     SQL_request(f"UPDATE users SET {find} = ? WHERE id = ?", (updated_values, user_id))
+    if find == "mood": result = "Настроение добавлено!"
+    if find == "topics": result = "Топик добавлен!"
+    return {"notification": result}
 
 def add_friends(my_id, frend_id, call):
     friend_name = call.from_user.first_name

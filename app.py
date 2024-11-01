@@ -23,6 +23,7 @@ def send_message(message, mood, message_id, topic_list=None):
     bot.delete_message(message.chat.id, message.message_id)
     keyboard_main = create_keyboard_main(message.chat.id)
     bot.edit_message_text(chat_id=message.chat.id, message_id=message_id, text="Добавить настроение", reply_markup=keyboard_main)
+    bot.answer_callback_query(call.id, "Настроение сохранено!")
 
 def get_value(message, edit, smile, message_id):
     get_text = message.text
@@ -37,7 +38,6 @@ def keyboard_edit(find, user_id, message_id):
     keyboard = InlineKeyboardMarkup(row_width=2)
     result = SQL_request(f"SELECT {find} FROM users WHERE id = ?", (user_id,))
     result = result[0]
-    print(result)
     if result == None:
         result = "{}"
     result = json.loads(result)
@@ -155,13 +155,11 @@ def start(message):
 @bot.inline_handler(lambda query: query.query == '' or not query.query)
 def default_query(inline_query):
     user_id = inline_query.from_user.id
-    print(f"Кнопку создает {user_id}")
     user = SQL_request("SELECT * FROM users WHERE id = ?", (int(user_id),))
 
     date, time = now_time()
     text = get_mood_data(user[0], date)
 
-    # Создаем список из двух статей
     results = [
         types.InlineQueryResultArticle(
             id='my_mood',
@@ -188,8 +186,6 @@ def default_query(inline_query):
             )
         )
     ]
-
-    # Отправляем обе кнопки в одном ответе
     bot.answer_inline_query(inline_query.id, results, cache_time=0)
 
 # ОБРАБОТКА ВЫЗОВОВ
@@ -244,6 +240,7 @@ def callback_query(call):  # работа с вызовами inline кнопо�
         keyboard_main = create_keyboard_main(user_id)
         text = "Добавить настроение"
         bot.edit_message_text(chat_id=user_id, message_id=message_id, text=text, reply_markup=keyboard_main)
+        bot.answer_callback_query(call.id, "Настроение сохранено!")
 
     if (call.data).split(":")[0] == 'more_reasons':
         date, time = now_time()
@@ -295,9 +292,11 @@ def callback_query(call):  # работа с вызовами inline кнопо�
     if (call.data).split(":")[0] == "add":
         edit = (call.data).split(":")[1]
         def next_step(message, edit):
-            add_value(message, edit, edit)
+            result = add_value(message, edit, edit)
             bot.delete_message(message.chat.id, message.message_id)
-            keyboard_edit(edit, user_id, message_id)      
+            bot.answer_callback_query(call.id, result["notification"])
+            keyboard_edit(edit, user_id, message_id)
+
         bot.register_next_step_handler(call.message, next_step, edit)
         text = f"Введите смайлик, что бы добавить новое настроение"
         keyboard = InlineKeyboardMarkup()
