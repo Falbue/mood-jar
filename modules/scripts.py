@@ -43,15 +43,23 @@ def add_mood(user_id, mood, reason):
     mood_data[current_date][current_time] = {'mood': mood, 'reason': reason}
     SQL_request("UPDATE users SET jar = ? WHERE id = ?", (json.dumps(mood_data, ensure_ascii=False), user_id))
 
-def get_only_mood(user_id, date):
+def get_mood_data(user_id, date, mode="emojis"):
     result = SQL_request("SELECT jar FROM users WHERE id = ?", (user_id,))
+    emoji_dict = SQL_request("SELECT mood FROM users WHERE id = ?", (user_id,))
+    emoji_dict = json.loads(emoji_dict[0])
     if result and result[0]:
         mood_data = json.loads(result[0])
         if date in mood_data:
-            mood_message = ""
-            emojis = ''.join(entry["mood"] for time, entry in mood_data[date].items())
-            emojis = format_emojis(emojis)
-            return emojis
+            if mode == "emojis":
+                emojis = ''.join(entry["mood"] for time, entry in mood_data[date].items())
+                return format_emojis(emojis)
+            elif mode == "text":
+                text = ''.join(
+                    f'{entry["mood"]} ({emoji_dict.get(entry["mood"], "Неизвестно")}): {entry["reason"]}\n'
+                    for time, entry in mood_data[date].items()
+                )
+                print(text)
+                return text
         else:
             return "Нет записей настроений"
     else:

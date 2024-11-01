@@ -6,22 +6,20 @@ import config
 from modules.scripts import *
 from modules.commands import *
 
-VERSION = "1.4.2"
+VERSION = "1.4.3"
 
 
 bot = telebot.TeleBot(config.API)  # создание бота
 
 # КЛАВИАТУРЫ
 btn_return_settings = InlineKeyboardButton("< Назад", callback_data='settings')
+btn_settings = InlineKeyboardButton("Настройки", callback_data='settings')
 
 btn_return_main = InlineKeyboardButton(text="< Назад", callback_data='return:main')
 btn_skip = InlineKeyboardButton(text="Пропустить >", callback_data='skip')
 keyboard_mood_settings = InlineKeyboardMarkup(row_width = 2)
 keyboard_mood_settings.add(btn_return_main, btn_skip)
 
-keyboard_profile = InlineKeyboardMarkup(row_width=2)
-btn_settings = InlineKeyboardButton("Настроки", callback_data='settings')
-keyboard_profile.add(btn_return_main, btn_settings)
 
 keyboard_settings = InlineKeyboardMarkup(row_width=2)
 btn_edit_mood = InlineKeyboardButton('Настроения', callback_data='edit:mood')
@@ -30,11 +28,6 @@ btn_edit_friends = InlineKeyboardButton("Друзья", callback_data='edit:frie
 btn_return_profile = InlineKeyboardButton("< Назад", callback_data='profile')
 keyboard_settings.add(btn_edit_mood, btn_edit_friends)
 keyboard_settings.add(btn_return_profile)
-
-keyboard_friends = InlineKeyboardMarkup(row_width=2)
-btn_return_friends_list = InlineKeyboardButton("< Назад", callback_data='friends')
-keyboard_friends.add(btn_return_friends_list)
-
 
 
 def send_message(message, mood, message_id):
@@ -81,7 +74,7 @@ def create_buttons(data, prefix):
             text = str(text)
         if callback == "":
             callback = text
-        if prefix ==  "rename_friends" or prefix == "open_friends":
+        if prefix ==  "rename_friends" or prefix == "profile":
             button = types.InlineKeyboardButton(callback, callback_data=f'{prefix}:{text}')
         elif prefix ==  "mood":
             button = types.InlineKeyboardButton(text, callback_data=f'{prefix}:{text}')
@@ -89,7 +82,6 @@ def create_buttons(data, prefix):
             button = types.InlineKeyboardButton(text, callback_data=f'{prefix}:{callback}')
         buttons.append(button)
     return buttons
-
 
 def create_keyboard_main(user_id):
     user = SQL_request("SELECT * FROM users WHERE id = ?", (int(user_id),))
@@ -103,7 +95,7 @@ def create_keyboard_main(user_id):
         buttons = create_buttons(mood_dict, "mood")
         
 
-    btn_profile = InlineKeyboardButton(text="Профиль", callback_data="profile")
+    btn_profile = InlineKeyboardButton(text="Профиль", callback_data=f"profile:{user[0]}")
     keyboard_main = InlineKeyboardMarkup(row_width=3)
     keyboard_main.add(*buttons)
     if user[2] == None or user[2] == json.dumps({}):
@@ -113,12 +105,11 @@ def create_keyboard_main(user_id):
     keyboard_main.add(btn_my_friends, btn_profile)
     return keyboard_main
 
-
-
-commands = [  # КОМАНДЫ
-telebot.types.BotCommand("start", "Перезапуск"),
-]
-
+def create_keyboard_profile(user_id):
+    keyboard = InlineKeyboardMarkup(row_width=2)
+    btn_reasons = InlineKeyboardButton("Подробнее", callback_data=f'more_reasons:{user_id}')
+    keyboard.add(btn_reasons)
+    return keyboard
 
 # КОМАНДЫ
 @bot.message_handler(commands=['start'])  # обработка команды start
@@ -133,8 +124,6 @@ def start(message):
     if menu_id:
         bot.delete_message(message.chat.id, menu_id)
 
-
-
 @bot.inline_handler(lambda query: query.query == 'Приглашение' or not query.query)
 def default_query(inline_query):
     user_id = inline_query.from_user.id
@@ -142,7 +131,7 @@ def default_query(inline_query):
     user = SQL_request("SELECT * FROM users WHERE id = ?", (int(user_id),))
     if not inline_query.query:
         date, time = now_time()
-        text = get_only_mood(user[0], date)
+        text = get_mood_data(user[0], date)
         bot.answer_inline_query(
             inline_query.id, 
             [
@@ -181,10 +170,6 @@ def default_query(inline_query):
             cache_time=0
         )
 
-
-
-
-
 # ОБРАБОТКА ВЫЗОВОВ
 @bot.callback_query_handler(func=lambda call: True)
 def callback_query(call):  # работа с вызовами inline кнопок
@@ -201,11 +186,18 @@ def callback_query(call):  # работа с вызовами inline кнопо�
         message_id = call.message.message_id
         user = SQL_request("SELECT * FROM users WHERE id = ?", (int(user_id),))
         SQL_request("UPDATE users SET username = ? WHERE id = ?", (call.from_user.username, user_id))
+        print(f"{user_id}: {call.data}")
 
-    if call.data == 'profile':
+    if (call.data).split(":")[0] == 'profile':
         date, time = now_time()
-        text = get_only_mood(user_id, date)
-        bot.edit_message_text(chat_id=user_id, message_id=message_id, text=text, reply_markup=keyboard_profile)
+        text = get_mood_data((call.data).split(":")[1], date)
+        keyboard = create_keyboard_profile((call.data).split(":")[1])
+        if int((call.data).split(":")[1]) == int(user_id):
+            keyboard.add(btn_return_main)
+        else:
+            list_friends = InlineKeyboardButton(text="< Назад", callback_data='friends')
+            keyboard.add(list_friends)
+        bot.edit_message_text(chat_id=user_id, message_id=message_id, text=text, reply_markup=keyboard)
 
     if (call.data).split(":")[0] == 'mood':
         mood = (call.data).split(":")[1]
@@ -218,19 +210,22 @@ def callback_query(call):  # работа с вызовами inline кнопо�
         add_mood(user_id, mood, "")
         keyboard_main = create_keyboard_main(user_id)
         text = "Добавить настроение"
-        if user_id == config.ADMIN:
-            text = f"{VERSION}\n\n{text}"
         bot.edit_message_text(chat_id=user_id, message_id=message_id, text=text, reply_markup=keyboard_main)
+
+    if (call.data).split(":")[0] == 'more_reasons':
+        date, time = now_time()
+        text = get_mood_data((call.data).split(":")[1], date, "text")
+        bot.edit_message_text(chat_id=user_id, message_id=message_id, text=text, reply_markup=types.InlineKeyboardMarkup().add(types.InlineKeyboardButton(text='< Назад', callback_data=f'profile:{(call.data).split(":")[1]}')))
 
     if call.data == 'frend':
         date, time = now_time()
-        text = get_only_mood(user[2], date)
+        text = get_mood_data(user[2], date)
         bot.edit_message_text(chat_id=user_id, message_id=message_id, text=text, reply_markup=keyboard_profile)
 
     if call.data == "friends":
         text = user[2]
         text = json.loads(text)
-        buttons = create_buttons(text, "open_friends")
+        buttons = create_buttons(text, "profile")
         keyboard = InlineKeyboardMarkup(row_width=2)
         keyboard.add(*buttons)
         keyboard.add(btn_return_main)
@@ -276,17 +271,6 @@ def callback_query(call):  # работа с вызовами inline кнопо�
         keyboard.add(btn)
         bot.edit_message_text(chat_id=user_id, message_id=message_id, text=text, reply_markup=keyboard, parse_mode="MarkdownV2")
 
-
-    if (call.data).split(":")[0] == "open_friends":
-        date, time = now_time()
-        friend_id = int((call.data).split(":")[1])
-        text = get_only_mood(friend_id, date)
-        bot.edit_message_text(chat_id=user_id, message_id=message_id, text=text, reply_markup=keyboard_friends)
-
-
-
-
-
     if (call.data).split(":")[0] == 'return':
         if (call.data).split(":")[1] == 'main':
             keyboard_main = create_keyboard_main(user_id)
@@ -295,8 +279,5 @@ def callback_query(call):  # работа с вызовами inline кнопо�
                 text = f"{VERSION}\n\n{text}"
             bot.edit_message_text(chat_id=user_id, message_id=message_id, text=text, reply_markup=keyboard_main)
         
-
-
-
 print(f"бот запущен...")
 bot.polling(none_stop=True)
