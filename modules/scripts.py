@@ -55,10 +55,9 @@ def get_mood_data(user_id, date, mode="emojis"):
                 return format_emojis(emojis)
             elif mode == "text":
                 text = ''.join(
-                    f'{entry["mood"]} ({emoji_dict.get(entry["mood"], "Неизвестно")}): {entry["reason"]}\n'
+                    f'{entry["mood"]} ({emoji_dict.get(entry["mood"], "Неизвестно")}): {entry["reason"]}\n\n'
                     for time, entry in mood_data[date].items()
                 )
-                print(text)
                 return text
         else:
             return "Нет записей настроений"
@@ -89,8 +88,6 @@ def delete_value(user_id, value, find):
         return f"Запись с {value} удалена!"
     else:
         return f"Смайлик {smile} не найден в записях"
-
-
 
 def add_value(message, edit):
     user_id = message.chat.id
@@ -145,7 +142,6 @@ def add_friends(my_id, frend_id, call):
     else:
         return False
 
-
 def get_friends(data):
     friends_list = {}
     friends = json.loads(data)
@@ -157,6 +153,12 @@ def get_friends(data):
         friends_list[friend_name] = friend_id
     return friends_list
 
+def info_user(user_id):
+    user = SQL_request("SELECT * FROM users WHERE id = ?", (int(user_id),))
+    text = f"""Имя: {user[4]}
+Дата регистрации: {user[3]}
+    """
+    return text
 
 # ПРОВЕРКА СОЗДАНИЯ БД
 if not os.path.exists(DB_PATH):
