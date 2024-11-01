@@ -6,15 +6,17 @@ import config
 from modules.scripts import *
 from modules.commands import *
 
-VERSION = "1.6.0"
-
 
 bot = telebot.TeleBot(config.API)  # создание бота
 
 # КЛАВИАТУРЫ
 btn_return_settings = InlineKeyboardButton("< Назад", callback_data='settings')
-btn_settings = InlineKeyboardButton("⚙️Настройки⚙️", callback_data='settings')
+btn_settings = InlineKeyboardButton("⚙️Настройки", callback_data='settings')
 btn_return_main = InlineKeyboardButton(text="< Назад", callback_data='return:main')
+
+keyboard_link = InlineKeyboardMarkup()
+btn_link = InlineKeyboardButton("Перейти в бота", url='https://t.me/mood_jar_bot')
+keyboard_link.add(btn_link)
 
 def send_message(message, mood, message_id, topic_list=None):   
     add_mood(message.chat.id, mood, message.text, topic_list)
@@ -87,13 +89,13 @@ def create_keyboard_main(user_id):
         buttons = create_buttons(mood_dict, "mood")
         
 
-    btn_profile = InlineKeyboardButton(text="Профиль", callback_data=f"profile:{user[0]}")
+    btn_profile = InlineKeyboardButton(text="👤 Профиль", callback_data=f"profile:{user[0]}")
     keyboard_main = InlineKeyboardMarkup(row_width=3)
     keyboard_main.add(*buttons)
     if user[2] == None or user[2] == json.dumps({}):
         btn_my_friends = InlineKeyboardButton(text="Пригласить друга", switch_inline_query="Приглашение")
     else:
-        btn_my_friends = InlineKeyboardButton(text="Друзья", callback_data='friends')
+        btn_my_friends = InlineKeyboardButton(text="👥 Друзья", callback_data='friends')
     keyboard_main.add(btn_my_friends, btn_profile)
     return keyboard_main
 
@@ -120,16 +122,18 @@ def create_keyboard_mood_settings(user_id, select_topics=False):
 
 def create_keyboard_profile(user_id):
     keyboard = InlineKeyboardMarkup(row_width=2)
-    btn_info = InlineKeyboardButton("Информация", callback_data=f'info:{user_id}')
+    btn_info = InlineKeyboardButton("ℹ️ Информация", callback_data=f'info:{user_id}')
     btn_reasons = InlineKeyboardButton("Подробнее", callback_data=f'more_reasons:{user_id}')
     keyboard.add(btn_info, btn_reasons)
     return keyboard
 
 def create_keyboard_settings(user_id):
+    emojis = ["😊", "😂", "🥳", "😎", "😢", "😡", "😍", "🤔", "🤯", "🤗"]
+    random_emoji = random.choice(emojis)
     keyboard = InlineKeyboardMarkup(row_width=2)
-    btn_edit_mood = InlineKeyboardButton('Настроения', callback_data='edit:mood')
-    btn_edit_topics = InlineKeyboardButton("Топики", callback_data='edit:topics')
-    btn_edit_friends = InlineKeyboardButton("Друзья", callback_data='edit:friends')
+    btn_edit_mood = InlineKeyboardButton(f"{random_emoji} Настроения", callback_data='edit:mood')
+    btn_edit_topics = InlineKeyboardButton("Ⓜ️ Топики", callback_data='edit:topics')
+    btn_edit_friends = InlineKeyboardButton("👥 Друзья", callback_data='edit:friends')
     btn_return_profile = InlineKeyboardButton("< Назад", callback_data=f'profile:{user_id}')
     keyboard.add(btn_edit_mood, btn_edit_friends, btn_edit_topics)
     keyboard.add(btn_return_profile)
@@ -148,51 +152,45 @@ def start(message):
     if menu_id:
         bot.delete_message(message.chat.id, menu_id)
 
-@bot.inline_handler(lambda query: query.query == 'Приглашение' or not query.query)
+@bot.inline_handler(lambda query: query.query == '' or not query.query)
 def default_query(inline_query):
     user_id = inline_query.from_user.id
     print(f"Кнопку создает {user_id}")
     user = SQL_request("SELECT * FROM users WHERE id = ?", (int(user_id),))
-    if not inline_query.query:
-        date, time = now_time()
-        text = get_mood_data(user[0], date)
-        bot.answer_inline_query(
-            inline_query.id, 
-            [
-                types.InlineQueryResultArticle(
-                    id='my_mood', 
-                    title='Моя банка',
-                    thumbnail_url="https://falbue.github.io/classroom-code/icons/registr.png",
-                    description='Отправить мою банку',
-                    input_message_content=types.InputTextMessageContent(
-                        message_text=text
-                    ),
+
+    date, time = now_time()
+    text = get_mood_data(user[0], date)
+
+    # Создаем список из двух статей
+    results = [
+        types.InlineQueryResultArticle(
+            id='my_mood',
+            title='Моя банка',
+            thumbnail_url="https://falbue.github.io/classroom-code/icons/registr.png",
+            description='Отправить мою банку',
+            input_message_content=types.InputTextMessageContent(
+                message_text=text
+            )
+        ),
+        types.InlineQueryResultArticle(
+            id='invite',
+            title='Приглашение',
+            thumbnail_url="https://falbue.github.io/classroom-code/icons/registr.png",
+            description='Отправить приглашение',
+            input_message_content=types.InputTextMessageContent(
+                message_text="Приглашение, добавления в друзья"
+            ),
+            reply_markup=types.InlineKeyboardMarkup().add(
+                types.InlineKeyboardButton(
+                    text='Принять',
+                    callback_data=f"invite:{user[0]}"
                 )
-            ],
-            cache_time=0
+            )
         )
-    else:
-        bot.answer_inline_query(
-            inline_query.id, 
-            [
-                types.InlineQueryResultArticle(
-                    id='invite', 
-                    title='Приглашение',
-                    thumbnail_url="https://falbue.github.io/classroom-code/icons/registr.png",
-                    description='Отправить приглашение',
-                    input_message_content=types.InputTextMessageContent(
-                        message_text="Приглашение"
-                    ),
-                    reply_markup=types.InlineKeyboardMarkup().add(
-                        types.InlineKeyboardButton(
-                            text='Перейти', 
-                            callback_data=f"invite:{user[0]}"
-                        )
-                    )
-                )
-            ],
-            cache_time=0
-        )
+    ]
+
+    # Отправляем обе кнопки в одном ответе
+    bot.answer_inline_query(inline_query.id, results, cache_time=0)
 
 # ОБРАБОТКА ВЫЗОВОВ
 @bot.callback_query_handler(func=lambda call: True)
@@ -202,7 +200,7 @@ def callback_query(call):  # работа с вызовами inline кнопо�
         my_id = call.data.split(":")[1]
         result = add_friends(my_id, user_id, call)
         if result != False:
-            bot.edit_message_text(chat_id=None, inline_message_id=call.inline_message_id, text=result, reply_markup=None)
+            bot.edit_message_text(chat_id=None, inline_message_id=call.inline_message_id, text=result, reply_markup=keyboard_link)
 
     else:
         user_id = call.message.chat.id
@@ -210,7 +208,7 @@ def callback_query(call):  # работа с вызовами inline кнопо�
         message_id = call.message.message_id
         user = SQL_request("SELECT * FROM users WHERE id = ?", (int(user_id),))
         SQL_request("UPDATE users SET username = ? WHERE id = ?", (call.from_user.username, user_id))
-        print(f"{user_id}: {call.data}")
+        # print(f"{user_id}: {call.data}")
 
     if (call.data).split(":")[0] == 'profile':
         date, time = now_time()
@@ -226,8 +224,6 @@ def callback_query(call):  # работа с вызовами inline кнопо�
 
     if (call.data).split(":")[0] == 'info':
         text = info_user((call.data).split(":")[1])
-        if user_id == config.ADMIN:
-            text = f"{VERSION}\n\n{text}"
         bot.answer_callback_query(callback_query_id=call.id, show_alert=True, text=text)
 
     if (call.data).split(":")[0] == 'mood':
@@ -313,36 +309,25 @@ def callback_query(call):  # работа с вызовами inline кнопо�
         topic_dict = json.loads(user[5])
         bot.clear_step_handler_by_chat_id(chat_id=user_id)
         topic_id = call.data.split(":")[1]
-        new_topic = topic_dict.get(topic_id, topic_id)  # Получаем значение из словаря или оставляем ID, если его нет
+        new_topic = topic_dict.get(topic_id, topic_id)
         text = call.message.text
         updated_topics = []
-    
-        # Проверка на наличие строки "Выбранные топики: " в тексте
         if "Выбранные топики: " not in text:
             text += f"\n\nВыбранные топики: {new_topic}"
             topic_list = [new_topic]
         else:
-            # Извлекаем существующие топики и обрабатываем добавление/удаление
             existing_topics = text.split("Выбранные топики: ")[1]
             topic_list = existing_topics.split(", ")
-    
-            # Добавляем новый топик, если его нет; удаляем, если он уже есть
             if new_topic in topic_list:
                 topic_list.remove(new_topic)
             else:
                 topic_list.append(new_topic)
-    
-            # Обновляем текст с изменённым списком топиков
             text_topic = ", ".join(topic_list)
             text = text.split("Выбранные топики: ")[0] + f"Выбранные топики: {text_topic}"
-    
-        # Оставшийся код для изменения сообщения
         mood = text.split(": ")[1].split("\n")[0]
         keyboard = create_keyboard_mood_settings(user_id, topic_list)
         bot.edit_message_text(chat_id=user_id, message_id=message_id, text=text, reply_markup=keyboard)
         bot.register_next_step_handler(call.message, send_message, mood, message_id, topic_list)
-    
-    
     
     if (call.data).split(":")[0] == 'return':
         if (call.data).split(":")[1] == 'main':
@@ -350,5 +335,6 @@ def callback_query(call):  # работа с вызовами inline кнопо�
             text = "Добавить настроение"
             bot.edit_message_text(chat_id=user_id, message_id=message_id, text=text, reply_markup=keyboard_main)
         
+
 print(f"бот запущен...")
 bot.polling(none_stop=True)

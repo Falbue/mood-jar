@@ -3,11 +3,13 @@ from datetime import datetime
 import pytz
 import sqlite3
 import os
+import random
 
 PARENT_DIR = os.path.dirname(os.path.abspath(__file__))  # текущая директория скрипта
 SCRIPT_DIR = os.path.dirname(PARENT_DIR)  # директория уровнем выше
 DB_NAME = 'database.db'
 DB_PATH = f"{SCRIPT_DIR}/{DB_NAME}"
+VERSION = "1.7.0"
 
 def now_time():  # Получение текущего времени по МСК
     now = datetime.now()
@@ -136,12 +138,11 @@ def add_friends(my_id, frend_id, call):
             friend_friends = {}
         else:
             friend_friends = json.loads(friend_friends)
-        
-        # Проверка на наличие одинаковых ключей
-        if frend_id in user_friends:
-            return "Вы уже добавлены в друзья"
-        if my_id in friend_friends:
-            return "Этот пользователь уже добавил вас в друзья"
+
+        # if frend_id in user_friends:
+        #     return "Вы уже добавлены в друзья"
+        # if my_id in friend_friends:
+        #     return "Этот пользователь уже добавил вас в друзья"
         
         user = SQL_request("SELECT * FROM users WHERE id = ?", (int(my_id),))
         user_friends[frend_id] = friend_name
@@ -167,8 +168,18 @@ def get_friends(data):
 
 def info_user(user_id):
     user = SQL_request("SELECT * FROM users WHERE id = ?", (int(user_id),))
+    if user[6] is not None:
+        total_days = len(json.loads(user[6]))
+        total_moods = sum(len(entries) for entries in json.loads(user[6]).values())
+        stat = f"\nДней активности: {total_days}\nВсего настроений добавлено: {total_moods}\n"
+    else: stat = ''
+    if user[2] is not None: num_frends = len(json.loads(user[2]))
+    else: num_frends = ""
     text = f"""Имя: {user[4]}
+Всего друзей: {num_frends}
 Дата регистрации: {user[3]}
+{stat}
+Версия: {VERSION} 
     """
     return text
 
