@@ -46,7 +46,7 @@ def keyboard_edit(find, user_id, message_id):
         print("Работает")
         type_edit = "друга"
         data = result
-        btn_add = InlineKeyboardButton(text="Пригласить друга", switch_inline_query="Приглашение")
+        btn_add = InlineKeyboardButton(text="Пригласить друга", switch_inline_query="")
     elif find == "topics":
         type_edit = "топик"
         data = result
@@ -94,7 +94,7 @@ def create_keyboard_main(user_id):
     keyboard_main = InlineKeyboardMarkup(row_width=3)
     keyboard_main.add(*buttons)
     if user[2] == None or user[2] == json.dumps({}):
-        btn_my_friends = InlineKeyboardButton(text="Пригласить друга", switch_inline_query="Приглашение")
+        btn_my_friends = InlineKeyboardButton(text="Пригласить друга", switch_inline_query="")
     else:
         btn_my_friends = InlineKeyboardButton(text="👥 Друзья", callback_data='friends')
     keyboard_main.add(btn_my_friends, btn_profile)
