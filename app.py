@@ -43,10 +43,11 @@ def keyboard_edit(find, user_id, message_id):
     result = json.loads(result)
     type_edit = "настроение"
     if find == "friends":
+        print("Работает")
         type_edit = "друга"
         data = result
         btn_add = InlineKeyboardButton(text="Пригласить друга", switch_inline_query="Приглашение")
-    if find == "topics":
+    elif find == "topics":
         type_edit = "топик"
         data = result
         btn_add = InlineKeyboardButton("Добавить +", callback_data=f'add:{find}')
