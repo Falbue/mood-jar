@@ -9,7 +9,7 @@ PARENT_DIR = os.path.dirname(os.path.abspath(__file__))  # текущая дир
 SCRIPT_DIR = os.path.dirname(PARENT_DIR)  # директория уровнем выше
 DB_NAME = 'database.db'
 DB_PATH = f"{SCRIPT_DIR}/{DB_NAME}"
-VERSION = "1.7.1"
+VERSION = "1.7.2"
 
 def now_time():  # Получение текущего времени по МСК
     now = datetime.now()
@@ -130,8 +130,7 @@ def add_friends(my_id, frend_id, call):
             topics = {"1": "Партнёр", "2": "Работа", "3": "Учёба", "4": "Здоровье", "5": "Друзья"}
             mood_json = json.dumps(mood, ensure_ascii=False)
             topics_json = json.dumps(topics, ensure_ascii=False)
-            SQL_request("""INSERT INTO users (id, message, time_registration, mood, topics)
-                          VALUES (?, ?, ?, ?, ?)""", (user_id, message_id+1, date, mood_json, topics_json))
+            SQL_request("INSERT INTO users (id, message, mood, username, time_registration, topics) VALUES (?, ?, ?, ?, ?, ?)", (frend_id, 1, mood_json, friend_name, date, topics_json))
         
         user_friends = SQL_request("SELECT friends FROM users WHERE id = ?", (my_id,))
         friend_friends = SQL_request("SELECT friends FROM users WHERE id = ?", (frend_id,))
