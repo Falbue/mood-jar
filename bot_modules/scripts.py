@@ -7,8 +7,11 @@ import random
 
 PARENT_DIR = os.path.dirname(os.path.abspath(__file__))  # текущая директория скрипта
 SCRIPT_DIR = os.path.dirname(PARENT_DIR)  # директория уровнем выше
-DB_NAME = 'database.db'
-DB_PATH = f"{SCRIPT_DIR}/{DB_NAME}"
+print(os.path.dirname(os.path.dirname(SCRIPT_DIR)))
+DB_HUB = os.path.join(os.path.dirname(os.path.dirname(SCRIPT_DIR)), 'db_hub')
+DB_HUB = SCRIPT_DIR if not (os.path.exists(DB_HUB) and os.path.isdir(DB_HUB)) else DB_HUB
+DB_NAME = 'mood_jar.db'
+DB_PATH = f"{DB_HUB}/{DB_NAME}"
 VERSION = "1.7.3"
 
 def now_time():  # Получение текущего времени по МСК
