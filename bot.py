@@ -24,8 +24,8 @@ def send_message(message, mood, call, topic_list=None):
     bot.delete_message(message.chat.id, message.message_id)
     keyboard_main = create_keyboard_main(message.chat.id)
     bot.edit_message_text(chat_id=message.chat.id, message_id=message_id, text="Добавить настроение", reply_markup=keyboard_main)
-    bot.answer_callback_query(call.id, "Настроение сохранено!")
     send_mood_friend(message.chat.id, mood, message.text, topic_list)
+    bot.answer_callback_query(call.id, "Настроение сохранено!")
 
 def get_value(message, edit, smile, message_id):
     get_text = message.text
