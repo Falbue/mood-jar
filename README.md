@@ -17,7 +17,7 @@
 3. Установите зависимости:
    ```bash
 pip install -r requirements.txt
-```
+   ```
 4. Создайте файл `config.py`:
    ```python
    API = ''  # API бота
