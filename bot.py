@@ -18,12 +18,14 @@ keyboard_link = InlineKeyboardMarkup()
 btn_link = InlineKeyboardButton("Перейти в бота", url='https://t.me/mood_jar_bot')
 keyboard_link.add(btn_link)
 
-def send_message(message, mood, message_id, topic_list=None):   
+def send_message(message, mood, call, topic_list=None):
+    message_id = call.message.message_id
     add_mood(message.chat.id, mood, message.text, topic_list)
     bot.delete_message(message.chat.id, message.message_id)
     keyboard_main = create_keyboard_main(message.chat.id)
     bot.edit_message_text(chat_id=message.chat.id, message_id=message_id, text="Добавить настроение", reply_markup=keyboard_main)
     bot.answer_callback_query(call.id, "Настроение сохранено!")
+    send_mood_friend(message.chat.id, mood, topic_list)
 
 def get_value(message, edit, smile, message_id):
     get_text = message.text
@@ -244,7 +246,7 @@ def callback_query(call):  # работа с вызовами inline кнопо�
         text = f"Вы выбрали: {mood}\n\nВведите причину такого настроения"
         keyboard = create_keyboard_mood_settings(user_id)
         bot.edit_message_text(chat_id=user_id, message_id=message_id, text=text, reply_markup=keyboard)
-        bot.register_next_step_handler(call.message, send_message, mood, message_id)
+        bot.register_next_step_handler(call.message, send_message, mood, call)
 
     if call.data == 'skip':
         text = call.message.text
@@ -344,7 +346,7 @@ def callback_query(call):  # работа с вызовами inline кнопо�
         mood = text.split(": ")[1].split("\n")[0]
         keyboard = create_keyboard_mood_settings(user_id, topic_list)
         bot.edit_message_text(chat_id=user_id, message_id=message_id, text=text, reply_markup=keyboard)
-        bot.register_next_step_handler(call.message, send_message, mood, message_id, topic_list)
+        bot.register_next_step_handler(call.message, send_message, mood, call, topic_list)
     
     if (call.data).split(":")[0] == 'return':
         if (call.data).split(":")[1] == 'main':
