@@ -15,7 +15,7 @@
    cd mood-jar
    ```
 3. Установите зависимости:
-  ```bash
+   ```bash
 pip install -r requirements.txt
 ```
 4. Создайте файл `config.py`:
