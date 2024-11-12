@@ -3,8 +3,8 @@ from telebot import types
 import telebot
 
 import config
-from bot_modules.scripts import *
-from bot_modules.commands import *
+from modules.scripts import *
+from modules.commands import *
 
 
 bot = telebot.TeleBot(config.API)  # создание бота
