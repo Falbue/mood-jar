@@ -43,7 +43,6 @@ def keyboard_edit(find, user_id, message_id):
     result = json.loads(result)
     type_edit = "настроение"
     if find == "friends":
-        print("Работает")
         type_edit = "друга"
         data = result
         btn_add = InlineKeyboardButton(text="Пригласить друга", switch_inline_query="")
@@ -205,19 +204,36 @@ def callback_query(call):  # работа с вызовами inline кнопо�
         message_id = call.message.message_id
         user = SQL_request("SELECT * FROM users WHERE id = ?", (int(user_id),))
         SQL_request("UPDATE users SET username = ? WHERE id = ?", (call.from_user.username, user_id))
-        # print(f"{user_id}: {call.data}")
+        print(f"{user_id}: {call.data}")
 
-    if (call.data).split(":")[0] == 'profile':
+    if ((call.data).split(":")[0]).split("-")[0] == 'profile':
+        profile_id = (call.data).split(":")[1]
+        if len(((call.data).split(":")[0]).split("-")) > 1:  
+            if ((call.data).split(":")[0]).split("-")[1] == "notif_friend":
+                notif_friend((call.data).split(":")[1], ((call.data).split(":")[0]).split("-")[2], user_id)
         date, time = now_time()
-        text = get_mood_data((call.data).split(":")[1], date)
-        keyboard = create_keyboard_profile((call.data).split(":")[1])
+        text = get_mood_data(profile_id, date)
+        keyboard = create_keyboard_profile(profile_id)
         if int((call.data).split(":")[1]) == int(user_id):
             keyboard.add(btn_settings)
             keyboard.add(btn_return_main)
         else:
             list_friends = InlineKeyboardButton(text="< Назад", callback_data='friends')
+            data = SQL_request("SELECT notif_friends FROM users WHERE id = ?", (int(user_id),))
+            data = json.loads(data[0])
+            if f"{profile_id}" in data:
+                if data[profile_id] == 'close':
+                    btn_friend_notif = InlineKeyboardButton(text="❌ Уведомления", callback_data=f'profile-notif_friend-add:{(call.data).split(":")[1]}')
+                else:
+                    btn_friend_notif = InlineKeyboardButton(text="✅ Уведомления", callback_data=f'profile-notif_friend-close:{(call.data).split(":")[1]}')
+            else:
+                btn_friend_notif = InlineKeyboardButton(text="❌ Уведомления", callback_data=f'profile-notif_friend-add:{(call.data).split(":")[1]}')
+            keyboard.add(btn_friend_notif)
             keyboard.add(list_friends)
-        bot.edit_message_text(chat_id=user_id, message_id=message_id, text=text, reply_markup=keyboard)
+        try:
+            bot.edit_message_text(chat_id=user_id, message_id=message_id, text=text, reply_markup=keyboard)
+        except:
+            bot.edit_message_reply_markup(chat_id=user_id, message_id=message_id, reply_markup=keyboard)
 
     if (call.data).split(":")[0] == 'info':
         text = info_user((call.data).split(":")[1])
@@ -335,6 +351,11 @@ def callback_query(call):  # работа с вызовами inline кнопо�
             keyboard_main = create_keyboard_main(user_id)
             text = "Добавить настроение"
             bot.edit_message_text(chat_id=user_id, message_id=message_id, text=text, reply_markup=keyboard_main)
+
+    if ((call.data).split(":")[0]).split("-")[0] == 'notif_friend':
+        type = ((call.data).split(":")[0]).split("-")[1]
+        friend_id = (call.data).split(":")[1]
+        
 
 @bot.message_handler(func=lambda message: True)
 def handle_text_message(message): # удаляет сообщения от пользователя

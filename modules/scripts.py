@@ -47,6 +47,7 @@ def add_mood(user_id, mood, reason, topic_list):
     mood_data[current_date][current_time] = {'mood': mood, 'reason': reason, "topics": topic_list}
     SQL_request("UPDATE users SET jar = ? WHERE id = ?", (json.dumps(mood_data, ensure_ascii=False), user_id))
 
+
 def get_mood_data(user_id, date, mode="emojis"):
     result = SQL_request("SELECT jar FROM users WHERE id = ?", (user_id,))
     emoji_dict = SQL_request("SELECT mood FROM users WHERE id = ?", (user_id,))
@@ -194,6 +195,16 @@ def info_user(user_id):
     """
     return text
 
+def notif_friend(friend_id, type, user_id):  # уведомления для друзей
+    user = SQL_request("SELECT * FROM users WHERE id = ?", (int(user_id),))
+    notif = user[9]
+    notif = json.loads(notif)
+    if notif != None:
+        notif[f"{friend_id}"] = f"{type}"
+    else: 
+        notif = {f"{user_id}":f"{type}"}
+    SQL_request("UPDATE users SET notif_friends = ? WHERE id = ?", (json.dumps(notif, ensure_ascii=False), friend_id))
+
 # ПРОВЕРКА СОЗДАНИЯ БД
 if not os.path.exists(DB_PATH):
     SQL_request("""
@@ -206,7 +217,8 @@ if not os.path.exists(DB_PATH):
             topics TEXT,
             jar JSON,
             mood JSON,
-            status TEXT
+            status TEXT,
+            notif_friends TEXT
         )
     """)
     print("База данных создана")
