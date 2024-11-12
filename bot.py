@@ -219,8 +219,8 @@ def callback_query(call):  # работа с вызовами inline кнопо�
             keyboard.add(btn_return_main)
         else:
             list_friends = InlineKeyboardButton(text="< Назад", callback_data='friends')
-            data = SQL_request("SELECT notif_friends FROM users WHERE id = ?", (int(user_id),))
-            data = json.loads(data[0])
+            data = SQL_request("SELECT notif_friends FROM users WHERE id = ?", (int(profile_id),))
+            data = json.loads(data[0]) if data[0] is not None else {f"{profile_id}":'close'}
             if f"{profile_id}" in data:
                 if data[profile_id] == 'close':
                     btn_friend_notif = InlineKeyboardButton(text="❌ Уведомления", callback_data=f'profile-notif_friend-add:{(call.data).split(":")[1]}')

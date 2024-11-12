@@ -198,7 +198,7 @@ def info_user(user_id):
 def notif_friend(friend_id, type, user_id):  # уведомления для друзей
     user = SQL_request("SELECT * FROM users WHERE id = ?", (int(user_id),))
     notif = user[9]
-    notif = json.loads(notif)
+    notif = json.loads(notif) if notif is not None else {}
     if notif != None:
         notif[f"{friend_id}"] = f"{type}"
     else: 
