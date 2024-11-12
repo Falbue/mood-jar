@@ -45,7 +45,7 @@ def add_mood(user_id, mood, reason, topic_list):
         mood_data[current_date] = {}
 
     mood_data[current_date][current_time] = {'mood': mood, 'reason': reason, "topics": topic_list}
-    SQL_request("UPDATE users SET jar = ? WHERE id = ?", (json.dumps(mood_data, ensure_ascii=False), user_id))
+    SQL_request("UPDATE users SET jar = ? WHERE id = ?", (json.dumps(mood_data, ensure_ascii=False), user_id)) 
 
 
 def get_mood_data(user_id, date, mode="emojis"):
@@ -196,14 +196,41 @@ def info_user(user_id):
     return text
 
 def notif_friend(friend_id, type, user_id):  # уведомления для друзей
-    user = SQL_request("SELECT * FROM users WHERE id = ?", (int(user_id),))
+    user = SQL_request("SELECT * FROM users WHERE id = ?", (int(friend_id),))
     notif = user[9]
     notif = json.loads(notif) if notif is not None else {}
     if notif != None:
-        notif[f"{friend_id}"] = f"{type}"
+        notif[f"{user_id}"] = f"{type}"
     else: 
         notif = {f"{user_id}":f"{type}"}
     SQL_request("UPDATE users SET notif_friends = ? WHERE id = ?", (json.dumps(notif, ensure_ascii=False), friend_id))
+
+
+def mood_message_friends(user_id, mood, text=None, topics=None):
+    if topics is None:
+        topic_text = ''
+    else:
+        topic_text = ' ' + ', '.join(topics)
+
+    if text is None:
+        text = ''
+
+    notif_list = SQL_request("SELECT notif_friends FROM users WHERE id = ?", (int(user_id),))
+    notif_list = json.loads(notif_list[0]) if notif_list[0] is not None else {}
+
+    messages = []
+    for user, notif_type in notif_list.items():
+        if notif_type == 'add':
+            friend_name = SQL_request("SELECT friends FROM users WHERE id = ?", (int(user),))
+            friend_name = json.loads(friend_name[0])[str(user_id)]
+
+            emoji_dict = SQL_request("SELECT mood FROM users WHERE id = ?", (user_id,))
+            emoji_dict = json.loads(emoji_dict[0])
+
+            message_text = f"{friend_name} добавил(а) новое настроение!\n\n{mood} ({emoji_dict.get(mood, '')}){topic_text}: {text}"
+            messages.append((user, message_text))
+
+    return messages
 
 # ПРОВЕРКА СОЗДАНИЯ БД
 if not os.path.exists(DB_PATH):

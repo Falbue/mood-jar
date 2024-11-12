@@ -25,7 +25,7 @@ def send_message(message, mood, call, topic_list=None):
     keyboard_main = create_keyboard_main(message.chat.id)
     bot.edit_message_text(chat_id=message.chat.id, message_id=message_id, text="Добавить настроение", reply_markup=keyboard_main)
     bot.answer_callback_query(call.id, "Настроение сохранено!")
-    send_mood_friend(message.chat.id, mood, topic_list)
+    send_mood_friend(message.chat.id, mood, message.text, topic_list)
 
 def get_value(message, edit, smile, message_id):
     get_text = message.text
@@ -35,6 +35,17 @@ def get_value(message, edit, smile, message_id):
     btn = InlineKeyboardButton("< Назад", callback_data=f"edit:{edit}")
     keyboard.add(btn)
     keyboard_edit(edit, message.chat.id, message_id)
+
+def send_mood_friend(user_id, mood, text=None, topics=None):
+    text = mood_message_friends(user_id, mood, text, topics)
+    keyboard = keyboard_notif()
+    for user_id, message_text in text:
+        try:
+            bot.send_message(user_id, message_text, reply_markup=keyboard)
+        except Exception as e:
+            print("Чат не найден")
+            print(e)
+
 
 def keyboard_edit(find, user_id, message_id):
     keyboard = InlineKeyboardMarkup(row_width=2)
@@ -139,6 +150,12 @@ def create_keyboard_settings(user_id):
     btn_return_profile = InlineKeyboardButton("< Назад", callback_data=f'profile:{user_id}')
     keyboard.add(btn_edit_mood, btn_edit_friends, btn_edit_topics)
     keyboard.add(btn_return_profile)
+    return keyboard
+
+def keyboard_notif():
+    btn = InlineKeyboardButton("Прочитано", callback_data="send")
+    keyboard = InlineKeyboardMarkup()
+    keyboard.add(btn)
     return keyboard
 
 # КОМАНДЫ
@@ -259,7 +276,7 @@ def callback_query(call):  # работа с вызовами inline кнопо�
         keyboard_main = create_keyboard_main(user_id)
         text = "Добавить настроение"
         bot.edit_message_text(chat_id=user_id, message_id=message_id, text=text, reply_markup=keyboard_main)
-        bot.answer_callback_query(call.id, "Настроение сохранено!")
+        send_mood_friend(user_id, mood, topics=topic_list)
 
     if (call.data).split(":")[0] == 'more_reasons':
         date, time = now_time()
@@ -357,6 +374,11 @@ def callback_query(call):  # работа с вызовами inline кнопо�
     if ((call.data).split(":")[0]).split("-")[0] == 'notif_friend':
         type = ((call.data).split(":")[0]).split("-")[1]
         friend_id = (call.data).split(":")[1]
+
+
+
+    if call.data == "send":
+        bot.delete_message(user_id, message_id)
         
 
 @bot.message_handler(func=lambda message: True)
