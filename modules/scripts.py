@@ -7,7 +7,6 @@ import random
 
 PARENT_DIR = os.path.dirname(os.path.abspath(__file__))  # текущая директория скрипта
 SCRIPT_DIR = os.path.dirname(PARENT_DIR)  # директория уровнем выше
-print(os.path.dirname(os.path.dirname(SCRIPT_DIR)))
 DB_HUB = os.path.join(os.path.dirname(os.path.dirname(SCRIPT_DIR)), 'db_hub')
 DB_HUB = SCRIPT_DIR if not (os.path.exists(DB_HUB) and os.path.isdir(DB_HUB)) else DB_HUB
 DB_NAME = 'mood_jar.db'
@@ -197,9 +196,7 @@ def info_user(user_id):
 
 # ПРОВЕРКА СОЗДАНИЯ БД
 if not os.path.exists(DB_PATH):
-    connect = sqlite3.connect(DB_PATH)
-    cursor = connect.cursor()
-    cursor.execute("""
+    SQL_request("""
         CREATE TABLE users (
             id INTEGER,
             message INTEGER, 
@@ -212,6 +209,4 @@ if not os.path.exists(DB_PATH):
             status TEXT
         )
     """)
-    connect.commit()
-    connect.close()
     print("База данных создана")
