@@ -387,7 +387,7 @@ def callback_query(call):  # работа с вызовами inline кнопо�
 
     if (call.data).split(":")[0] == 'another_day':
         profile_id = (call.data).split(":")[1]
-        jar = SQL_request("SELECT jar FROM users WHERE id = ?", (int(user_id),))
+        jar = SQL_request("SELECT jar FROM users WHERE id = ?", (int(profile_id),))
         jar = json.loads(jar[0])
         dates_list = {date: date for date in jar.keys()}
         keyboard = InlineKeyboardMarkup(row_width=3)
