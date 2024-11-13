@@ -158,6 +158,12 @@ def keyboard_notif():
     keyboard.add(btn)
     return keyboard
 
+def keyboard_return(back):
+    btn = InlineKeyboardButton("< Назад", callback_data=back)
+    keyboard = InlineKeyboardMarkup()
+    keyboard.add(btn)
+    return keyboard
+
 # КОМАНДЫ
 @bot.message_handler(commands=['start'])  # обработка команды start
 def start(message):
@@ -227,6 +233,7 @@ def callback_query(call):  # работа с вызовами inline кнопо�
 
     if ((call.data).split(":")[0]).split("-")[0] == 'profile':
         profile_id = (call.data).split(":")[1]
+        btn_check_another_day = InlineKeyboardButton("Другие дни", callback_data=f"another_day:{profile_id}")
         if len(((call.data).split(":")[0]).split("-")) > 1:  
             if ((call.data).split(":")[0]).split("-")[1] == "notif_friend":
                 notif_friend((call.data).split(":")[1], ((call.data).split(":")[0]).split("-")[2], user_id)
@@ -234,7 +241,7 @@ def callback_query(call):  # работа с вызовами inline кнопо�
         text = get_mood_data(profile_id, date)
         keyboard = create_keyboard_profile(profile_id)
         if int((call.data).split(":")[1]) == int(user_id):
-            keyboard.add(btn_settings)
+            keyboard.add(btn_settings, btn_check_another_day)
             keyboard.add(btn_return_main)
         else:
             list_friends = InlineKeyboardButton(text="< Назад", callback_data='friends')
@@ -250,7 +257,7 @@ def callback_query(call):  # работа с вызовами inline кнопо�
                     btn_friend_notif = InlineKeyboardButton(text="❌ Уведомления", callback_data=f'profile-notif_friend-add:{(call.data).split(":")[1]}')
             else:
                 btn_friend_notif = InlineKeyboardButton(text="❌ Уведомления", callback_data=f'profile-notif_friend-add:{(call.data).split(":")[1]}')
-            keyboard.add(btn_friend_notif)
+            keyboard.add(btn_friend_notif, btn_check_another_day)
             keyboard.add(list_friends)
         try:
             bot.edit_message_text(chat_id=user_id, message_id=message_id, text=text, reply_markup=keyboard)
@@ -378,7 +385,31 @@ def callback_query(call):  # работа с вызовами inline кнопо�
         type = ((call.data).split(":")[0]).split("-")[1]
         friend_id = (call.data).split(":")[1]
 
+    if (call.data).split(":")[0] == 'another_day':
+        profile_id = (call.data).split(":")[1]
+        jar = SQL_request("SELECT jar FROM users WHERE id = ?", (int(user_id),))
+        jar = json.loads(jar[0])
+        dates_list = {date: date for date in jar.keys()}
+        keyboard = InlineKeyboardMarkup(row_width=3)
+        buttons = create_buttons(dates_list, f"check_date-{profile_id}")
+        keyboard.add(*buttons)
+        btn_return_profile = InlineKeyboardButton("< Назад", callback_data=f'profile:{profile_id}')
+        keyboard.add(btn_return_profile)
+        if jar:
+            text = "Успешно"
+            bot.edit_message_text(chat_id=user_id, message_id=message_id, text=text, reply_markup=keyboard)
+        else:
+            text = "Настроение в другие дни не найдено :("
+            keyboard = keyboard_return(f"profile:{profile_id}")
+            bot.edit_message_text(chat_id=user_id, message_id=message_id, text=text, reply_markup=keyboard)
 
+    if ((call.data).split(":")[0]).split("-")[0] == 'check_date':
+        date = (call.data).split(":")[1]
+        profile_id = ((call.data).split(":")[0]).split("-")[1]
+        text = get_mood_data(profile_id, date, "text")
+        print(text)
+        keyboard = keyboard_return(f"another_day:{profile_id}")
+        bot.edit_message_text(chat_id=user_id, message_id=message_id, text=text, reply_markup=keyboard)
 
     if call.data == "send":
         bot.delete_message(user_id, message_id)
