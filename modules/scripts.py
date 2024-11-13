@@ -11,7 +11,7 @@ DB_HUB = os.path.join(os.path.dirname(os.path.dirname(SCRIPT_DIR)), 'db_hub')
 DB_HUB = SCRIPT_DIR if not (os.path.exists(DB_HUB) and os.path.isdir(DB_HUB)) else DB_HUB
 DB_NAME = 'mood_jar.db'
 DB_PATH = f"{DB_HUB}/{DB_NAME}"
-VERSION = "1.9.0"
+VERSION = "1.9.1"
 
 def now_time():  # Получение текущего времени по МСК
     now = datetime.now()

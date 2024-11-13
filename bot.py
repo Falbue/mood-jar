@@ -396,7 +396,7 @@ def callback_query(call):  # работа с вызовами inline кнопо�
         btn_return_profile = InlineKeyboardButton("< Назад", callback_data=f'profile:{profile_id}')
         keyboard.add(btn_return_profile)
         if jar:
-            text = "Успешно"
+            text = "Выберите нужный вам день:"
             bot.edit_message_text(chat_id=user_id, message_id=message_id, text=text, reply_markup=keyboard)
         else:
             text = "Настроение в другие дни не найдено :("
@@ -407,7 +407,7 @@ def callback_query(call):  # работа с вызовами inline кнопо�
         date = (call.data).split(":")[1]
         profile_id = ((call.data).split(":")[0]).split("-")[1]
         text = get_mood_data(profile_id, date, "text")
-        print(text)
+        text = f"{date}\n\n{text}"
         keyboard = keyboard_return(f"another_day:{profile_id}")
         bot.edit_message_text(chat_id=user_id, message_id=message_id, text=text, reply_markup=keyboard)
 
