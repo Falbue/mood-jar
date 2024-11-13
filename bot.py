@@ -388,14 +388,14 @@ def callback_query(call):  # работа с вызовами inline кнопо�
     if (call.data).split(":")[0] == 'another_day':
         profile_id = (call.data).split(":")[1]
         jar = SQL_request("SELECT jar FROM users WHERE id = ?", (int(profile_id),))
-        jar = json.loads(jar[0])
-        dates_list = {date: date for date in jar.keys()}
-        keyboard = InlineKeyboardMarkup(row_width=3)
-        buttons = create_buttons(dates_list, f"check_date-{profile_id}")
-        keyboard.add(*buttons)
-        btn_return_profile = InlineKeyboardButton("< Назад", callback_data=f'profile:{profile_id}')
-        keyboard.add(btn_return_profile)
-        if jar:
+        if jar[0]:
+            jar = json.loads(jar[0])
+            dates_list = {date: date for date in jar.keys()}
+            keyboard = InlineKeyboardMarkup(row_width=3)
+            buttons = create_buttons(dates_list, f"check_date-{profile_id}")
+            keyboard.add(*buttons)
+            btn_return_profile = InlineKeyboardButton("< Назад", callback_data=f'profile:{profile_id}')
+            keyboard.add(btn_return_profile)
             text = "Выберите нужный вам день:"
             bot.edit_message_text(chat_id=user_id, message_id=message_id, text=text, reply_markup=keyboard)
         else:
