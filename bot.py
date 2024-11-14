@@ -421,4 +421,13 @@ def handle_text_message(message): # удаляет сообщения от по�
         
 
 print(f"бот запущен...")
-bot.polling(none_stop=True)
+def start_polling():
+    while True:
+        try:
+            bot.polling(none_stop=True, timeout=60)  # Установите таймаут для перезапуска
+        except Exception as e:
+            print(f"Ошибка при подключении: {e}")
+            time.sleep(5)  # Пауза перед повторным подключением
+
+if __name__ == "__main__":
+    start_polling()
