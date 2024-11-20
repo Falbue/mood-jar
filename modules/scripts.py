@@ -11,7 +11,7 @@ DB_HUB = os.path.join(os.path.dirname(os.path.dirname(SCRIPT_DIR)), 'db_hub')
 DB_HUB = SCRIPT_DIR if not (os.path.exists(DB_HUB) and os.path.isdir(DB_HUB)) else DB_HUB
 DB_NAME = 'mood_jar.db'
 DB_PATH = f"{DB_HUB}/{DB_NAME}"
-VERSION = "2.0.3"
+VERSION = "2.0.4"
 print(f"Версия: {VERSION}")
 
 def now_time():  # Получение текущего времени по МСК
@@ -218,12 +218,14 @@ def mood_message_friends(user_id, mood, text=None, topics=None):
 
     notif_list = SQL_request("SELECT notif_friends FROM users WHERE telegram_id = ?", (int(user_id),))
     notif_list = json.loads(notif_list[0]) if notif_list[0] is not None else {}
+    print(notif_list)
 
     messages = []
     for user, notif_type in notif_list.items():
         if notif_type == 'add':
-            friend_name = SQL_request("SELECT friends FROM users WHERE telegram_id = ?", (int(user),))
-            friend_name = json.loads(friend_name[0])[str(user_id)]
+            friend_name = SQL_request("SELECT friends FROM users WHERE id = ?", (int(user),))
+            my_id = SQL_request("SELECT id FROM users WHERE telegram_id = ?", (int(user_id),))
+            friend_name = json.loads(friend_name[0])[str(my_id[0])]
 
             emoji_dict = SQL_request("SELECT mood FROM users WHERE telegram_id = ?", (user_id,))
             emoji_dict = json.loads(emoji_dict[0])
