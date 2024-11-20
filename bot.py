@@ -242,7 +242,7 @@ def callback_query(call):  # работа с вызовами inline кнопо�
         date, time = now_time()
         text = get_mood_data(user[0], date)
         keyboard = create_keyboard_profile(user[0])
-        if int((call.data).split(":")[1]) == int(user[14]):
+        if int((call.data).split(":")[1]) == int(my_id[0]):
             keyboard.add(btn_settings, btn_check_another_day)
             keyboard.add(btn_return_main)
         else:
