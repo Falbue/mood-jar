@@ -11,7 +11,7 @@ DB_HUB = os.path.join(os.path.dirname(os.path.dirname(SCRIPT_DIR)), 'db_hub')
 DB_HUB = SCRIPT_DIR if not (os.path.exists(DB_HUB) and os.path.isdir(DB_HUB)) else DB_HUB
 DB_NAME = 'mood_jar.db'
 DB_PATH = f"{DB_HUB}/{DB_NAME}"
-VERSION = "1.9.1.3"
+VERSION = "2.0.0"
 
 def now_time():  # Получение текущего времени по МСК
     now = datetime.now()
@@ -36,7 +36,7 @@ def SQL_request(request, params=()):  # Выполнение SQL-запросо�
 
 def add_mood(user_id, mood, reason, topic_list):
     current_date, current_time = now_time()
-    result = SQL_request("SELECT jar FROM users WHERE id = ?", (user_id,))
+    result = SQL_request("SELECT jar FROM users WHERE telegram_id = ?", (user_id,))
     if result and result[0]:
         mood_data = json.loads(result[0])
     else:
@@ -45,7 +45,7 @@ def add_mood(user_id, mood, reason, topic_list):
         mood_data[current_date] = {}
 
     mood_data[current_date][current_time] = {'mood': mood, 'reason': reason, "topics": topic_list}
-    SQL_request("UPDATE users SET jar = ? WHERE id = ?", (json.dumps(mood_data, ensure_ascii=False), user_id)) 
+    SQL_request("UPDATE users SET jar = ? WHERE telegram_id = ?", (json.dumps(mood_data, ensure_ascii=False), user_id)) 
 
 
 def get_mood_data(user_id, date, mode="emojis"):
@@ -78,20 +78,20 @@ def format_emojis(emojis, per_row=4, space="    "):
 
 def edit_value(user_id, edit, edit_value, text):
     text = text.replace(" ", "")
-    result = SQL_request(f"SELECT {edit} FROM users WHERE id = ?", (user_id,))
+    result = SQL_request(f"SELECT {edit} FROM users WHERE telegram_id = ?", (user_id,))
     values = json.loads(result[0])
     values[edit_value] = text
     updated_values = json.dumps(values, ensure_ascii=False)
-    SQL_request(f"UPDATE users SET {edit} = ? WHERE id = ?", (updated_values, user_id))
+    SQL_request(f"UPDATE users SET {edit} = ? WHERE telegram_id = ?", (updated_values, user_id))
     return f"изменено!"
 
 def delete_value(user_id, value, find):
-    result = SQL_request(f"SELECT {find} FROM users WHERE id = ?", (user_id,))
+    result = SQL_request(f"SELECT {find} FROM users WHERE telegram_id = ?", (user_id,))
     values = json.loads(result[0])
     if value in values:
         values.pop(value)
         delete_value = json.dumps(values, ensure_ascii=False)
-        SQL_request(f"UPDATE users SET {find} = ? WHERE id = ?", (delete_value, user_id))
+        SQL_request(f"UPDATE users SET {find} = ? WHERE telegram_id = ?", (delete_value, user_id))
         return f"Запись с {value} удалена!"
     else:
         return f"Смайлик {smile} не найден в записях"
@@ -100,7 +100,7 @@ def add_value(message, edit, find):
     user_id = message.chat.id
     text = message.text
 
-    result = SQL_request(f"SELECT {find} FROM users WHERE id = ?", (user_id,))
+    result = SQL_request(f"SELECT {find} FROM users WHERE telegram_id = ?", (user_id,))
     if find == "mood" and (not isinstance(text, str) or len(text.split()) != 1):
         return {"notification": "Нужно отправить одно эмоджи!"}
 
@@ -117,7 +117,7 @@ def add_value(message, edit, find):
     else:
         values[text] = "ИЗМЕНИТЬ"
     updated_values = json.dumps(values, ensure_ascii=False)
-    SQL_request(f"UPDATE users SET {find} = ? WHERE id = ?", (updated_values, user_id))
+    SQL_request(f"UPDATE users SET {find} = ? WHERE telegram_id = ?", (updated_values, user_id))
     if find == "mood": result = "Настроение добавлено!"
     if find == "topics": result = "Топик добавлен!"
     return {"notification": result}
@@ -126,7 +126,7 @@ def add_friends(my_id, frend_id, call):
     friend_name = call.from_user.first_name
     
     if str(my_id) != str(frend_id):
-        user = SQL_request("SELECT * FROM users WHERE id = ?", (int(frend_id),))
+        user = SQL_request("SELECT * FROM users WHERE telegram_id = ?", (int(frend_id),))
         if user is None or user == "":
             date, time = now_time()
             mood = {"😊": "Радость", "😢": "Грусть", "😐": "Равнодушие", "😁": "Восторг", "😴": "Усталость"}
@@ -135,8 +135,8 @@ def add_friends(my_id, frend_id, call):
             topics_json = json.dumps(topics, ensure_ascii=False)
             SQL_request("INSERT INTO users (id, message, mood, username, time_registration, topics) VALUES (?, ?, ?, ?, ?, ?)", (frend_id, 1, mood_json, friend_name, date, topics_json))
         
-        user_friends = SQL_request("SELECT friends FROM users WHERE id = ?", (my_id,))
-        friend_friends = SQL_request("SELECT friends FROM users WHERE id = ?", (frend_id,))
+        user_friends = SQL_request("SELECT friends FROM users WHERE telegram_id = ?", (my_id,))
+        friend_friends = SQL_request("SELECT friends FROM users WHERE telegram_id = ?", (frend_id,))
         
         user_friends = user_friends[0] if user_friends else None
         friend_friends = friend_friends[0] if friend_friends else None
@@ -156,12 +156,12 @@ def add_friends(my_id, frend_id, call):
         # if my_id in friend_friends:
         #     return "Этот пользователь уже добавил вас в друзья"
         
-        user = SQL_request("SELECT * FROM users WHERE id = ?", (int(my_id),))
+        user = SQL_request("SELECT * FROM users WHERE telegram_id = ?", (int(my_id),))
         user_friends[frend_id] = friend_name
         friend_friends[my_id] = user[4]
         
-        SQL_request("UPDATE users SET friends = ? WHERE id = ?", (json.dumps(user_friends, ensure_ascii=False), my_id))
-        SQL_request("UPDATE users SET friends = ? WHERE id = ?", (json.dumps(friend_friends, ensure_ascii=False), frend_id))
+        SQL_request("UPDATE users SET friends = ? WHERE telegram_id = ?", (json.dumps(user_friends, ensure_ascii=False), my_id))
+        SQL_request("UPDATE users SET friends = ? WHERE telegram_id = ?", (json.dumps(friend_friends, ensure_ascii=False), frend_id))
         
         return "Вы добавлены в друзья"
     else:
@@ -172,7 +172,7 @@ def get_friends(data):
     friends = json.loads(data)
     for name, friend_id in friends.items():
         if name == "":
-            friend_name = SQL_request("SELECT username FROM users WHERE id = ?", (int(friend_id),))
+            friend_name = SQL_request("SELECT username FROM users WHERE telegram_id = ?", (int(friend_id),))
             friend_name = friend_name[0]
         else: friend_name = name
         friends_list[friend_name] = friend_id
@@ -215,16 +215,16 @@ def mood_message_friends(user_id, mood, text=None, topics=None):
     if text is None:
         text = ''
 
-    notif_list = SQL_request("SELECT notif_friends FROM users WHERE id = ?", (int(user_id),))
+    notif_list = SQL_request("SELECT notif_friends FROM users WHERE telegram_id = ?", (int(user_id),))
     notif_list = json.loads(notif_list[0]) if notif_list[0] is not None else {}
 
     messages = []
     for user, notif_type in notif_list.items():
         if notif_type == 'add':
-            friend_name = SQL_request("SELECT friends FROM users WHERE id = ?", (int(user),))
+            friend_name = SQL_request("SELECT friends FROM users WHERE telegram_id = ?", (int(user),))
             friend_name = json.loads(friend_name[0])[str(user_id)]
 
-            emoji_dict = SQL_request("SELECT mood FROM users WHERE id = ?", (user_id,))
+            emoji_dict = SQL_request("SELECT mood FROM users WHERE telegram_id = ?", (user_id,))
             emoji_dict = json.loads(emoji_dict[0])
 
             message_text = f"{friend_name} добавил(а) новое настроение!\n\n{mood} ({emoji_dict.get(mood, '')}){topic_text}: {text}"
@@ -236,7 +236,7 @@ def mood_message_friends(user_id, mood, text=None, topics=None):
 if not os.path.exists(DB_PATH):
     SQL_request("""
         CREATE TABLE users (
-            id INTEGER,
+            telegram_id INTEGER,
             message INTEGER, 
             friends JSON,
             time_registration TIME,

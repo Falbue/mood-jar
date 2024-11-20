@@ -49,7 +49,7 @@ def send_mood_friend(user_id, mood, text=None, topics=None):
 
 def keyboard_edit(find, user_id, message_id):
     keyboard = InlineKeyboardMarkup(row_width=2)
-    result = SQL_request(f"SELECT {find} FROM users WHERE id = ?", (user_id,))
+    result = SQL_request(f"SELECT {find} FROM users WHERE telegram_id = ?", (user_id,))
     result = result[0]
     if result == None:
         result = "{}"
@@ -91,7 +91,7 @@ def create_buttons(data, prefix):
     return buttons
 
 def create_keyboard_main(user_id):
-    user = SQL_request("SELECT * FROM users WHERE id = ?", (int(user_id),))
+    user = SQL_request("SELECT * FROM users WHERE telegram_id = ?", (int(user_id),))
     mood = user[7]
     if mood is None or mood == "{}" or mood == json.dumps({}):
         buttons = []
@@ -113,7 +113,7 @@ def create_keyboard_main(user_id):
     return keyboard_main
 
 def create_keyboard_mood_settings(user_id, select_topics=False):
-    user = SQL_request("SELECT * FROM users WHERE id = ?", (int(user_id),))
+    user = SQL_request("SELECT * FROM users WHERE telegram_id = ?", (int(user_id),))
     topics = user[5]
     if topics is None or topics == "{}" or topics == json.dumps({}):
         buttons = []
@@ -180,7 +180,7 @@ def start(message):
 @bot.inline_handler(lambda query: query.query == '' or not query.query)
 def default_query(inline_query):
     user_id = inline_query.from_user.id
-    user = SQL_request("SELECT * FROM users WHERE id = ?", (int(user_id),))
+    user = SQL_request("SELECT * FROM users WHERE telegram_id = ?", (int(user_id),))
 
     date, time = now_time()
     text = get_mood_data(user[0], date)
@@ -227,20 +227,22 @@ def callback_query(call):  # работа с вызовами inline кнопо�
         user_id = call.message.chat.id
         bot.clear_step_handler_by_chat_id(chat_id=user_id)
         message_id = call.message.message_id
-        user = SQL_request("SELECT * FROM users WHERE id = ?", (int(user_id),))
-        SQL_request("UPDATE users SET username = ? WHERE id = ?", (call.from_user.username, user_id))
+        user = SQL_request("SELECT * FROM users WHERE telegram_id = ?", (int(user_id),))
+        SQL_request("UPDATE users SET username = ? WHERE telegram_id = ?", (call.from_user.username, user_id))
         print(f"{user_id}: {call.data}")
 
     if ((call.data).split(":")[0]).split("-")[0] == 'profile':
         profile_id = (call.data).split(":")[1]
+        user = SQL_request("SELECT * FROM users WHERE id = ?", (int(profile_id),))
+        my_id = SQL_request("SELECT id FROM users WHERE telegram_id = ?", (int(user_id),))
         btn_check_another_day = InlineKeyboardButton("Другие дни", callback_data=f"another_day:{profile_id}")
         if len(((call.data).split(":")[0]).split("-")) > 1:  
             if ((call.data).split(":")[0]).split("-")[1] == "notif_friend":
-                notif_friend((call.data).split(":")[1], ((call.data).split(":")[0]).split("-")[2], user_id)
+                notif_friend((call.data).split(":")[1], ((call.data).split(":")[0]).split("-")[2], my_id[0])
         date, time = now_time()
-        text = get_mood_data(profile_id, date)
-        keyboard = create_keyboard_profile(profile_id)
-        if int((call.data).split(":")[1]) == int(user_id):
+        text = get_mood_data(user[0], date)
+        keyboard = create_keyboard_profile(user[0])
+        if int((call.data).split(":")[1]) == int(user[14]):
             keyboard.add(btn_settings, btn_check_another_day)
             keyboard.add(btn_return_main)
         else:
@@ -249,7 +251,7 @@ def callback_query(call):  # работа с вызовами inline кнопо�
             if data[0]:
                 data = json.loads(data[0])
                 try:
-                    if data[f"{user_id}"] == 'close':
+                    if data[f"{my_id[0]}"] == 'close':
                         btn_friend_notif = InlineKeyboardButton(text="❌ Уведомления", callback_data=f'profile-notif_friend-add:{(call.data).split(":")[1]}')
                     else:
                         btn_friend_notif = InlineKeyboardButton(text="✅ Уведомления", callback_data=f'profile-notif_friend-close:{(call.data).split(":")[1]}')
@@ -303,7 +305,8 @@ def callback_query(call):  # работа с вызовами inline кнопо�
         bot.edit_message_text(chat_id=user_id, message_id=message_id, text="Ваши друзья", reply_markup=keyboard, parse_mode="MarkdownV2")
 
     if call.data == 'settings':
-        keyboard = create_keyboard_settings(user_id)
+        user = SQL_request("SELECT * FROM users WHERE telegram_id = ?", (int(user_id),))
+        keyboard = create_keyboard_settings(user[0])
         bot.edit_message_text(chat_id=user_id, message_id=message_id, text="Выберите, что хотите настроить", reply_markup=keyboard)
 
     if (call.data).split(":")[0] == 'edit':
@@ -387,9 +390,10 @@ def callback_query(call):  # работа с вызовами inline кнопо�
 
     if (call.data).split(":")[0] == 'another_day':
         profile_id = (call.data).split(":")[1]
-        jar = SQL_request("SELECT jar FROM users WHERE id = ?", (int(profile_id),))
-        if jar[0]:
-            jar = json.loads(jar[0])
+        jar = SQL_request("SELECT * FROM users WHERE id = ?", (int(profile_id),))
+        jar = jar[6]
+        if jar:
+            jar = json.loads(jar)
             dates_list = {date: date for date in jar.keys()}
             keyboard = InlineKeyboardMarkup(row_width=3)
             buttons = create_buttons(dates_list, f"check_date-{profile_id}")
@@ -427,7 +431,7 @@ def start_polling():
             bot.polling(none_stop=True, timeout=60)  # Установите таймаут для перезапуска
         except Exception as e:
             print(f"Ошибка при подключении: {e}")
-            time.sleep(5)  # Пауза перед повторным подключением
 
 if __name__ == "__main__":
-    start_polling()
+    # start_polling()
+    bot.polling(none_stop=True, timeout=60)

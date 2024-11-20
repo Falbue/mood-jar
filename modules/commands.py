@@ -6,7 +6,7 @@ def registration(message):
     username = message.from_user.username
 
     date, time  = now_time()
-    user = SQL_request("SELECT 0 FROM users WHERE id = ?", (user_id,))
+    user = SQL_request("SELECT 0 FROM users WHERE telegram_id = ?", (user_id,))
     if user is None:
         mood = {"😊":"Радость", "😢":"Грусть", "😐":"Равнодушие", "😁":"Восторг", "😴":"Усталость"}
         topics = {"1": "Партнёр", "2": "Работа", "3": "Учёба", "4": "Здоровье", "5": "Друзья"}
@@ -16,8 +16,8 @@ def registration(message):
                           VALUES (?, ?, ?, ?, ?)""", (user_id, message_id+1, date, mood_json, topics_json))
         print(f"Зарегистрирован новый пользователь")
     else:
-        menu_id = SQL_request("SELECT message FROM users WHERE id = ?", (user_id,))
-        SQL_request("""UPDATE users SET message = ?, username = ? WHERE id = ?""", (message_id+1, username, user_id))  # добавление id нового меню
+        menu_id = SQL_request("SELECT message FROM users WHERE telegram_id = ?", (user_id,))
+        SQL_request("""UPDATE users SET message = ?, username = ? WHERE telegram_id = ?""", (message_id+1, username, user_id))  # добавление telegram_id нового меню
         return menu_id
 
 def info(user):
