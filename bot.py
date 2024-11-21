@@ -42,9 +42,9 @@ def send_mood_friend(user_id, mood, text=None, topics=None):
     for user_id, message_text in text:
         try:
             friend_id = SQL_request("SELECT telegram_id FROM users WHERE id = ?", (int(user_id),))
-            bot.send_message(friend_id, message_text, reply_markup=keyboard)
+            bot.send_message(friend_id[0], message_text, reply_markup=keyboard)
         except Exception as e:
-            print("Чат не найден")
+            print(f"Чат {friend_id[0]} не найден")
             print(e)
 
 
