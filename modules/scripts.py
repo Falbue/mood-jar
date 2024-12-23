@@ -11,7 +11,7 @@ DB_HUB = os.path.join(os.path.dirname(os.path.dirname(SCRIPT_DIR)), 'db_hub')
 DB_HUB = SCRIPT_DIR if not (os.path.exists(DB_HUB) and os.path.isdir(DB_HUB)) else DB_HUB
 DB_NAME = 'mood_jar.db'
 DB_PATH = f"{DB_HUB}/{DB_NAME}"
-VERSION = "2.0.5.1"
+VERSION = "2.0.5.2"
 print(f"Версия: {VERSION}")
 
 def now_time():  # Получение текущего времени по МСК
@@ -134,7 +134,7 @@ def add_friends(my_id, frend_id, call):
             topics = {"1": "Партнёр", "2": "Работа", "3": "Учёба", "4": "Здоровье", "5": "Друзья"}
             mood_json = json.dumps(mood, ensure_ascii=False)
             topics_json = json.dumps(topics, ensure_ascii=False)
-            SQL_request("INSERT INTO users (id, message, mood, username, time_registration, topics) VALUES (?, ?, ?, ?, ?, ?)", (frend_id, 1, mood_json, friend_name, date, topics_json))
+            SQL_request("INSERT INTO users (telegram_id, message, mood, username, time_registration, topics) VALUES (?, ?, ?, ?, ?, ?)", (frend_id, 1, mood_json, friend_name, date, topics_json))
         
         user_friends = SQL_request("SELECT friends FROM users WHERE telegram_id = ?", (my_id,))
         friend_friends = SQL_request("SELECT friends FROM users WHERE telegram_id = ?", (frend_id,))
